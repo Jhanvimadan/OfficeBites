@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Skeleton from "@mui/material/Skeleton";
-import hero from "../assets/hero.png"
+import img from "../assets/image.png"
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -124,10 +124,10 @@ export default function CafeteriaList() {
   image={
     info.cloudinaryImageId
       ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_400/${info.cloudinaryImageId}`
-      : hero        // 👈 fallback image here
+      : img        // 👈 fallback image here
   }
   onError={(e: any) => {
-    e.target.src = hero; // 👈 if Swiggy image fails, load fallback
+    e.target.src = img; // 👈 if Swiggy image fails, load fallback
   }}
   alt={info.name}
 />
