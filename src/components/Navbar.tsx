@@ -1,6 +1,6 @@
 import { Box, Typography, IconButton } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle"; //profile icon
-import logo from "../assets/hero.png";
+import logo from "../assets/logo.png";
 export default function Navbar() {
 
   return (
@@ -25,21 +25,18 @@ export default function Navbar() {
        <img
         src={logo}
         alt="Smart Cafeteria Logo"
-        style={{ height: "40px", borderRadius: "8px" }}
+        style={{ height: "60px", borderRadius: "20px" }}
     />
-
-      
-      <Typography
-        variant="h6"
-        fontWeight="bold"
-        sx={{
-          color: "#00A783", // theme color
-          cursor: "pointer", // shows pointer on hover
-        }}
-      >
-        Smart Cafeteria
-      </Typography>
-    </Box>
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "left" }}>
+       <Typography variant="h5" fontWeight="bold">
+         OfficeBites
+       </Typography>
+     
+       <Typography variant="subtitle2" color="text.secondary">
+         Smart Cafeteria Solutions
+       </Typography>
+     </Box>
+     </Box>
 
       {/* RIGHT SIDE */}
       <Box
@@ -53,6 +50,7 @@ export default function Navbar() {
 
         {/* Home */}
         <Typography
+        variant= "h6"
           sx={{
             cursor: "pointer",
             fontWeight: "bold",
@@ -64,6 +62,7 @@ export default function Navbar() {
 
         {/* Menu */}
         <Typography
+        variant= "h6"
           sx={{
             cursor: "pointer",
 
@@ -78,6 +77,7 @@ export default function Navbar() {
 
         {/* Orders */}
         <Typography
+        variant= "h6"
           sx={{
             cursor: "pointer",
             "&:hover": {
@@ -90,6 +90,7 @@ export default function Navbar() {
 
         {/* Profile icon */}
         <IconButton
+        size="large"
           sx={{
             color: "#brown",
             "&:hover": {

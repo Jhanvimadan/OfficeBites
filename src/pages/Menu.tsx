@@ -1,51 +1,67 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Typography, Card, CardContent, Divider } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Divider,
+} from "@mui/material";
+import CardMedia from "@mui/material/CardMedia";
 
 export default function Menu() {
-  // Get restaurant id from the URL (/menu/:id)
+  // Restaurant id from URL
   const { id } = useParams();
 
-  // Stores restaurant header info (name, rating, cuisines)
+  // Restaurant header info
   const [restaurantInfo, setRestaurantInfo] = useState<any>(null);
 
-  // Stores all menu items (dishes)
+  // All menu items
   const [menuItems, setMenuItems] = useState<any[]>([]);
 
-  // Loading state for shimmer / text
+  // Veg / Non-veg filter
+  const [vegFilter, setVegFilter] =
+    useState<"ALL" | "VEG" | "NON_VEG">("ALL");
+
+  // Loading state
   const [loading, setLoading] = useState(true);
+
+  // Apply veg filter safely
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (item.isVeg === undefined) return true;
+    if (vegFilter === "VEG") return item.isVeg === 1;
+    if (vegFilter === "NON_VEG") return item.isVeg === 0;
+    return true;
+  });
 
   const fetchMenu = async () => {
     try {
-      // ✅ Correct menu API endpoint
+      // ✅ Correct API endpoint
       const response = await fetch(
         `https://namastedev.com/api/v1/listRestaurantMenu/${id}`
       );
-
       const json = await response.json();
-      console.log("Menu API JSON:", json);
 
-      // ✅ Extract restaurant basic info
+      // Restaurant header info
       const info =
         json?.data?.cards?.find(
-          (card: any) => card?.card?.card?.info
+          (c: any) => c?.card?.card?.info
         )?.card?.card?.info;
 
       setRestaurantInfo(info);
 
-      // ✅ Menu items live under REGULAR cards
+      // Menu extraction
       const menuCards =
         json?.data?.cards?.find(
-          (card: any) => card?.groupedCard
+          (c: any) => c?.groupedCard
         )?.groupedCard?.cardGroupMap?.REGULAR?.cards;
 
       const items: any[] = [];
 
-      // Loop through categories and collect dishes
       menuCards?.forEach((card: any) => {
         if (card?.card?.card?.itemCards) {
-          card.card.card.itemCards.forEach((item: any) => {
-            items.push(item.card.info);
+          card.card.card.itemCards.forEach((i: any) => {
+            items.push(i.card.info);
           });
         }
       });
@@ -58,7 +74,6 @@ export default function Menu() {
     }
   };
 
-  // Fetch menu when page loads or id changes
   useEffect(() => {
     fetchMenu();
   }, [id]);
@@ -73,7 +88,7 @@ export default function Menu() {
 
   return (
     <Box sx={{ px: 4, py: 4 }}>
-      {/* Restaurant header */}
+      {/* Restaurant Header */}
       {restaurantInfo && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" fontWeight="bold">
@@ -91,26 +106,45 @@ export default function Menu() {
         </Box>
       )}
 
+      {/* Veg Filter Buttons */}
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        <button onClick={() => setVegFilter("ALL")}>All</button>
+        <button onClick={() => setVegFilter("VEG")}>Veg 🌱</button>
+        <button onClick={() => setVegFilter("NON_VEG")}>Non‑Veg 🍗</button>
+      </Box>
+
       <Divider sx={{ mb: 3 }} />
 
-      {/* Menu items */}
-      {menuItems.map((item) => (
+      {/* Menu Items */}
+      {filteredMenuItems.map((item) => (
         <Card key={item.id} sx={{ mb: 2 }}>
-          <CardContent>
-            <Typography fontWeight="bold">
-              {item.name}
-            </Typography>
+          <CardContent sx={{ display: "flex", gap: 2 }}>
+            {item.imageId && (
+              <CardMedia
+                component="img"
+                sx={{ width: 100, borderRadius: 1 }}
+                image={`https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_200/${item.imageId}`}
+                alt={item.name}
+              />
+            )}
 
-            <Typography color="text.secondary">
-              ₹{(item.price || item.defaultPrice) / 100}
-            </Typography>
+            <Box>
+              <Typography fontWeight="bold">
+                {item.name} {item.isVeg === 1 ? "🌱" : "🍗"}
+              </Typography>
 
-            <Typography variant="body2">
-              {item.description}
-            </Typography>
+              <Typography color="text.secondary">
+                ₹{(item.price || item.defaultPrice) / 100}
+              </Typography>
+
+              <Typography variant="body2">
+                {item.description}
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
       ))}
     </Box>
   );
 }
+``
