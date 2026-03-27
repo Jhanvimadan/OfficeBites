@@ -39,6 +39,7 @@ export default function LocationModal({
   onClose,
   onSelect,
 }: LocationModalProps) {
+  //first city is selected then office in that city
   const [city, setCity] = useState("");
   const [selectedOffice, setSelectedOffice] = useState("");
   const [search, setSearch] = useState("");

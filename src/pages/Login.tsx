@@ -32,6 +32,12 @@ export default function Login() {
   };
   //func to handle login button click, checks final validation before navigating
   const handleLogin = () => {
+    //empty email check
+    if(!email.trim()){
+      setError("Email is required");
+      return;
+    }
+    //domain validation
     const err = validateEmailLive(email);
     if (err) {
       setError(err); //show error if invalid

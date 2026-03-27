@@ -6,9 +6,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 type HeroProps = {
   office: string | null; //currently selected office if any
   onChangeLocation: () => void;
+  onExplore: () => void;
 };
 
-export default function Hero({ office, onChangeLocation }: HeroProps) {
+export default function Hero({ office, onChangeLocation, onExplore }: HeroProps) {
 
   return (
     <Box
@@ -82,6 +83,7 @@ export default function Hero({ office, onChangeLocation }: HeroProps) {
       {/* BUTTON */}
 
       <Button
+      onClick={onExplore}
         variant="contained"
         sx={{
           mt: 2,

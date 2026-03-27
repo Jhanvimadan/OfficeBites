@@ -23,6 +23,10 @@ export default function Menu() {
   const [vegFilter, setVegFilter] =
     useState<"ALL" | "VEG" | "NON_VEG">("ALL");
 
+  //ADD button
+   const [quantity, setQuantity] = useState(0);
+
+
   // Loading state
   const [loading, setLoading] = useState(true);
 
