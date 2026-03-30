@@ -1,50 +1,85 @@
 import { useState, useEffect, useRef } from "react";
-import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import LocationModal from "../components/LocationModal";
 import CafeteriaList from "../components/CafeteriaList";
+import SearchBar from "../components/SearchBar";
 
-``
-export default function Home() {
+/**
+ * Home is responsible for:
+ * - location selection UX
+ * - search text state
+ * - scrolling to cafeteria list
+ */
 
-  //stores selected office location, null means no loc selected by user
-  const [office, setOffice] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false); //visibility control of LocationModal
-  const cafeteriaRef = useRef<HTMLDivElement | null>(null);
-
-const handleExploreClick = () => {
-  cafeteriaRef.current?.scrollIntoView({
-    behavior: "smooth",
-  });
+type HomeProps = {
+  office: string | null;
+  setOffice: (value: string) => void;
 };
 
-  //to check if user has previously saved location in browser storage
+export default function Home({ office, setOffice }: HomeProps) {
+  // controls visibility of location picker
+  const [showModal, setShowModal] = useState(false);
+
+  // search text for restaurants
+  const [searchText, setSearchText] = useState("");
+
+  // used for smooth scroll to cafeteria section
+  const cafeteriaRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * On first load:
+   * - check if user already selected an office earlier
+   * - if not, open location modal automatically
+   */
   useEffect(() => {
     const savedOffice = localStorage.getItem("office");
-    setOffice(savedOffice);
-//if no saved location, auto opens modal
-    if (!savedOffice) {
+
+    if (savedOffice) {
+      setOffice(savedOffice);
+    } else {
       setShowModal(true);
     }
-  }, []);
+  }, [setOffice]);
+
+  /**
+   * Scroll to cafeteria list when user clicks "Explore"
+   */
+  const handleExploreClick = () => {
+    cafeteriaRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  };
 
   return (
     <>
-    
-    {/*send data to navbar*/}
+      {/* ---------- HEADER / HERO ---------- */}
+      <Hero
+        office={office}
+        onExplore={handleExploreClick}
+        onChangeLocation={() => setShowModal(true)}
+      />
 
-     <Hero
-     office={office}
-     onExplore={handleExploreClick}
-     onChangeLocation={() => setShowModal(true)}
-   />
+      {/* ---------- SEARCH BAR ---------- */}
+      <SearchBar
+        value={searchText}
+        onChange={setSearchText}
+        placeholder="Search restaurants"
+      />
+
+      {/* ---------- CAFETERIA LIST ---------- */}
       <div ref={cafeteriaRef}>
-       <CafeteriaList />
-       </div>
+        <CafeteriaList search={searchText} />
+      </div>
+
+      {/* ---------- LOCATION MODAL ---------- */}
       <LocationModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)} //close modal
-        onSelect={(value) => setOffice(value)} //update selected office
+        onClose={() => setShowModal(false)}
+        onSelect={(value) => {
+          setOffice(value);
+          localStorage.setItem("office", value);
+          setShowModal(false);
+        }}
       />
     </>
   );

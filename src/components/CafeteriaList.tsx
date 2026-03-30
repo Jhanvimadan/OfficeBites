@@ -13,13 +13,22 @@ import {
 } from "@mui/material";
 import CardMedia from "@mui/material/CardMedia";
 
-export default function CafeteriaList() {
+type CafeteriaListProps = {
+  search: string;
+};
+
+export default function CafeteriaList({search}: CafeteriaListProps) {
   // Holds the list of restaurants coming from the API
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const navigate = useNavigate();
   // Just to show a loading text before we get the actual data
   const [loading, setLoading] = useState(true);
-
+useEffect(() => {
+  console.log("🔍 CafeteriaList received search:", search);
+}, [search]);
+const dealRestaurants = restaurants.filter(
+  (r) => r.info.aggregatedDiscountInfoV3
+);
   const Shimmer = () => {
   return (
     <Box sx={{ px: 4, py: 6 }}>
@@ -94,17 +103,37 @@ export default function CafeteriaList() {
   // Show a simple loading message while waiting for the API
   if (loading) return <Shimmer />;
 
+  
+/**
+   * Apply search filter
+   */
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredRestaurants = restaurants.filter((restaurant) => {
+    const name = restaurant?.info?.name?.toLowerCase() ?? "";
+    return !normalizedSearch || name.includes(normalizedSearch);
+  });
+
+  
   return (
     <Box sx={{ px: 4, py: 6 }}>
       {/* Section heading */}
       <Typography variant="h5" fontWeight="bold" mb={4}>
         Cafeteria Stalls
       </Typography>
+      
 
-      {/* Grid containing the restaurant cards */}
-      <Grid container spacing={3}>
-        {restaurants.map((item) => {
-          const info = item.info;
+      
+{/* Empty state if no results */}
+      {filteredRestaurants.length === 0 ? (
+        <Typography color="text.secondary">
+          No restaurants found
+        </Typography>
+      ) : (
+        <Grid container spacing={3}>
+          {filteredRestaurants.map((item) => {
+            const info = item.info;
+
 
           return (
             // Each restaurant card needs a unique key for React
@@ -115,7 +144,11 @@ export default function CafeteriaList() {
                   boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
                 }}
               >
-                <CardActionArea onClick={() => navigate(`/menu/${info.id}`)}>
+                <CardActionArea onClick={() => navigate(`/menu/${info.id}`, {
+                  state: {
+                    offer: info.aggregatedDiscountInfoV3,
+                  }
+                })}>
 
                   {/* Restaurant image (Swiggy CDN auto-handles the ID) */}
                   <CardMedia
@@ -161,6 +194,7 @@ export default function CafeteriaList() {
           );
         })}
       </Grid>
+      )}
     </Box>
   );
 }

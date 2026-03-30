@@ -1,38 +1,54 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState } from "react";
+
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Menu from "./pages/Menu";
 import Navbar from "./components/Navbar";
-import { useState } from "react";
+//import Footer from "./components/Footer";
 
-function Layout(){
-   const [office, setOffice] = useState<string | null>(null);
-    const [showModal, setShowModal] = useState(false); //visibility control of LocationModal
-    
-    const location = useLocation();
-    const hideNavbar= location.pathname ==="/";
+function Layout() {
+  // ✅ OFFICE STATE LIVES HERE
+  const [office, setOffice] = useState<string | null>(null);
 
-    return (
-      <>
-      {!hideNavbar && (<Navbar
-              office={office}
-              onChangeLocation={() => setShowModal(true)} 
-            />
-            )}
-          
+  const location = useLocation();
+  const hideGlobalUI = location.pathname === "/";
+
+  return (
+    <>
+      {!hideGlobalUI && (
+        <Navbar
+          office={office}
+          onChangeLocation={() => {
+            /* handled in Home */
+          }}
+        />
+      )}
+
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/menu/:id" element={<Menu />} />
+
+        {/* ✅ PASS setOffice */}
+        <Route
+          path="/home"
+          element={<Home office={office} setOffice={setOffice} />}
+        />
+
+        <Route
+          path="/menu/:id"
+          element={<Menu />}
+        />
       </Routes>
-      </>
-    );
-  }
+
+      {/*{!hideGlobalUI && <Footer />}*/}
+    </>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-    <Layout />
+      <Layout />
     </BrowserRouter>
   );
 }
