@@ -8,7 +8,7 @@ import Navbar from "./components/Navbar";
 //import Footer from "./components/Footer";
 
 function Layout() {
-  // ✅ OFFICE STATE LIVES HERE
+  // OFFICE STATE
   const [office, setOffice] = useState<string | null>(null);
 
   const location = useLocation();

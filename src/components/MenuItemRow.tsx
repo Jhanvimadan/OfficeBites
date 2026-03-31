@@ -37,7 +37,7 @@ export default function MenuItemRow({
   // - button 
   const decrement = () => {
     setQuantity((prevQty) => {
-        if (prevQty===0) return0;
+        if (prevQty===0) return 0;
         
         const nextQty = prevQty - 1;
         onQuantityChange(-1);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -46,7 +46,7 @@ export default function Menu() {
   // Search box value
   const [searchText, setSearchText] = useState("");
 
-  // ✅ GLOBAL cart count (VERY IMPORTANT)
+  // GLOBAL cart count
   // This controls whether CartBar appears or not
   const [cartCount, setCartCount] = useState(0);
 
@@ -54,7 +54,12 @@ export default function Menu() {
   const [loading, setLoading] = useState(true);
 
   //deals for you section
-  const offer = restaurantInfo?.aggregatedDiscountInfoV3;
+  // Prefer deal passed from Home, fallback to API if ever provided
+  const location = useLocation();
+
+// Deal info passed from Home (Restaurant List page)
+  const dealFromHome = location.state?.offer;
+  const offer = dealFromHome || restaurantInfo?.aggregatedDiscountInfoV3;
 
   /**
    * Combined filtering logic
@@ -151,59 +156,93 @@ export default function Menu() {
   }
 
   return (
-    <Box sx={{ px: 4, py: 4 }}>
-      {/* ---------- Restaurant Header ---------- */}
-      {restaurantInfo && (
-        <Box sx={{ mb: 4 }}>
-  <Typography variant="h4" fontWeight="bold">
-    {restaurantInfo.name}
-  </Typography>
+<Box sx={{ px: 4, py: 4 }}>
+    {/* ---------- Restaurant Header ---------- */}
+    {restaurantInfo && (
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight="bold">
+          {restaurantInfo.name}
+        </Typography>
 
-  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-    ⭐ {restaurantInfo.avgRatingString} (
-    {restaurantInfo.totalRatingsString}) •{" "}
-    {restaurantInfo.costForTwoMessage}
-  </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          ⭐ {restaurantInfo.avgRatingString} (
+          {restaurantInfo.totalRatingsString}) •{" "}
+          {restaurantInfo.costForTwoMessage}
+        </Typography>
 
-  <Typography variant="body2" color="text.secondary">
-    {restaurantInfo.cuisines?.join(", ")}
-  </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {restaurantInfo.cuisines?.join(", ")}
+        </Typography>
 
-  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-    <Typography variant="body2" color="primary">
-      {restaurantInfo.locality}
+        <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+          <Typography variant="body2" color="primary">
+            {restaurantInfo.locality}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {restaurantInfo.sla?.slaString}
+          </Typography>
+        </Box>
+
+        {/* ---------- Deals for This Restaurant ---------- */}
+        {dealFromHome && (
+  <Box
+    sx={{
+      mt: 3,
+      mb: 4,
+      p: 3,
+      borderRadius: 3,
+      background:
+        "linear-gradient(90deg, #fff7e6 0%, #ffffff 85%)",
+      border: "1px solid #ffe0b2",
+    }}
+  >
+    <Typography
+      variant="subtitle1"
+      fontWeight="bold"
+      sx={{ mb: 1 }}
+    >
+      Deals for You
     </Typography>
-    <Typography variant="body2" color="text.secondary">
-      {restaurantInfo.sla?.slaString}
-    </Typography>
-  </Box>
 
-  {/* ✅ Deal banner on its own line */}
-  {offer && (
     <Box
       sx={{
-        mt: 2,
-        px: 2,
-        py: 1,
-        bgcolor: "#f1f8e9",
-        borderRadius: 2,
-        display: "inline-flex",
+        display: "flex",
         alignItems: "center",
-        gap: 1,
+        gap: 2,
+        flexWrap: "wrap",
       }}
     >
-      <Typography fontWeight="bold" color="green">
-        {offer.header}
+      <Typography
+        sx={{
+          fontSize: "1.1rem",
+          fontWeight: "bold",
+          color: "#2e7d32",
+        }}
+      >
+        {dealFromHome.header}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
-        {offer.subHeader}
+
+      <Typography
+        variant="body2"
+        color="text.secondary"
+      >
+        {dealFromHome.subHeader}
       </Typography>
     </Box>
-  )}
-</Box>
-      )}
 
-      {/* ---------- Menu Header ---------- */}
+    <Typography
+      variant="caption"
+      color="text.secondary"
+      sx={{ mt: 1, display: "block" }}
+    >
+      Offer will be applied automatically at checkout
+  </Typography>
+</Box>
+        )}
+      </Box>
+    )}
+    
+    {/* ---------- Menu Header ---------- */}
       <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
         MENU
       </Typography>
@@ -238,14 +277,14 @@ export default function Menu() {
           checked={showVeg}
           onChange={setShowVeg}
           icon={VegIcon}
-          activeColor="#4CAF50"
+          activeColor="#2ecc71"
         />
 
         <IconSwitch
           checked={showNonVeg}
           onChange={setShowNonVeg}
           icon={NonVegIcon}
-          activeColor="#D32F2F"
+          activeColor="#e74c3c"
         />
 
         <ToggleButtonGroup

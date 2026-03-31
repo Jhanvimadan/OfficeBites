@@ -14,14 +14,14 @@ export default function IconSwitch({
   activeColor,
 }: IconSwitchProps) {
 
-  // ✅ SVG wrapped and sized properly
+  //icon inside thumb
   const ThumbIcon = (
     <img
       src={icon}
       alt=""
       style={{
-        width:24,
-        height: 24,
+        width:14,
+        height: 14,
         objectFit: "contain",
       }}
     />
@@ -36,13 +36,20 @@ export default function IconSwitch({
       disableRipple
       sx={{
         width: 44,
-        height: 26,
+        height: 28,
         padding: 0,
 
+        /*switch base controls thumb movement */
         "& .MuiSwitch-switchBase": {
           padding: 2,
+          transitionDuration: "300ms",
         },
-
+        /*movement distance when checked */
+        "& .MuiSwitch-switchBase.Mui-checked": {
+          transform: "translateX(16px)",
+          color: '#fff',
+        },
+        /* thumb(circle) */
         "& .MuiSwitch-thumb": {
           width: 22,
           height: 22,
@@ -52,7 +59,7 @@ export default function IconSwitch({
           justifyContent: "center",
           boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
         },
-
+        /* track(background) */
         "& .MuiSwitch-track": {
           borderRadius: 13,
           backgroundColor: checked ? activeColor : "#d0d0d0",

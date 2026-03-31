@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Skeleton from "@mui/material/Skeleton";
-import img from "../assets/image.png"
 import { useNavigate } from "react-router-dom";
+
+import Skeleton from "@mui/material/Skeleton";
 
 import {
   Box,
@@ -10,191 +10,335 @@ import {
   Card,
   CardContent,
   CardActionArea,
+  Stack,
 } from "@mui/material";
+
 import CardMedia from "@mui/material/CardMedia";
+
+import img from "../assets/image.png"; // fallback image if restaurant image fails
+import DealCard from "./DealCard"; // reusable component for deals
+
+/*
+This defines the shape of restaurant data coming from the API.
+Instead of using 'any', we create a proper type for better safety.
+*/
+
+type Restaurant = {
+  info: {
+    id: string;
+    name: string;
+    cuisines: string[];
+    avgRatingString: string;
+    costForTwo: string;
+    cloudinaryImageId?: string;
+    aggregatedDiscountInfoV3?: any;
+  };
+};
+
+
+/* This component receives search text from Home page
+so we define it as a prop. */
 
 type CafeteriaListProps = {
   search: string;
 };
 
-export default function CafeteriaList({search}: CafeteriaListProps) {
-  // Holds the list of restaurants coming from the API
-  const [restaurants, setRestaurants] = useState<any[]>([]);
-  const navigate = useNavigate();
-  // Just to show a loading text before we get the actual data
+/*   MAIN COMPONENT */
+
+export default function CafeteriaList({ search }: CafeteriaListProps) {
+
+  /* ---------------- STATE ---------------- */
+
+  // Stores restaurant data from API
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+
+  // Controls shimmer loading UI
   const [loading, setLoading] = useState(true);
-useEffect(() => {
-  console.log("🔍 CafeteriaList received search:", search);
-}, [search]);
-const dealRestaurants = restaurants.filter(
-  (r) => r.info.aggregatedDiscountInfoV3
-);
-  const Shimmer = () => {
-  return (
+
+  // React Router navigation
+  const navigate = useNavigate();
+
+
+
+  /*  SHIMMER LOADING UI
+  While the API is loading, we show skeleton cards
+  to give users a better experience instead of blank page
+  */
+
+  const Shimmer = () => (
     <Box sx={{ px: 4, py: 6 }}>
+
       <Typography variant="h5" fontWeight="bold" mb={4}>
         Loading Cafeteria Stalls...
       </Typography>
 
       <Grid container spacing={3}>
         {Array.from({ length: 6 }).map((_, i) => (
-          <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                padding: 2,
-                boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
-              }}
-            >
-              {/* Shimmer image */}
-              <Skeleton
-                variant="rectangular"
-                width="100%"
-                height={180}
-                sx={{ borderRadius: 2 }}
-              />
 
-              {/* Text lines */}
+          <Grid item xs={12} sm={6} md={4} key={i}>
+            <Card sx={{ borderRadius: 3, p: 2 }}>
+
+              <Skeleton variant="rectangular" height={200} />
               <Skeleton variant="text" sx={{ mt: 2 }} />
               <Skeleton variant="text" width="60%" />
               <Skeleton variant="text" width="40%" />
+
             </Card>
           </Grid>
+
         ))}
       </Grid>
     </Box>
   );
-};
 
-  // Fetch restaurant list from API
+
+
+  /* API CALL */
+  /* This function fetches restaurant data from the API.
+  After receiving data, we extract the restaurant list
+  from the nested JSON structure. */
+
   const fetchRestaurants = async () => {
     try {
-      // Hitting the NamasteDev API (CORS extension must be enabled)
       const response = await fetch(
         "https://namastedev.com/api/v1/listRestaurants"
       );
 
-      // Convert response to JSON
       const json = await response.json();
 
-      console.log("API JSON:", json); // Helpful while debugging
-
-      // The API sends restaurants deep inside nested objects
-      // So we extract them from json.data.data.cards[1]...
+      // Extract restaurant data safely using optional chaining
       const restaurantData =
-        json.data.data.cards[1]?.card?.card?.gridElements?.infoWithStyle
-          ?.restaurants;
+        json?.data?.data?.cards?.[1]?.card?.card?.gridElements
+          ?.infoWithStyle?.restaurants ?? [];
 
-      // Save the list in state (or empty list if undefined)
-      setRestaurants(restaurantData || []);
+      setRestaurants(restaurantData);
+
     } catch (error) {
-      console.error("Error while fetching restaurants:", error);
+      console.error("Error fetching restaurants:", error);
     } finally {
-      // Hide loading text after API completes (success or fail)
+
+      // Loading finished
       setLoading(false);
     }
   };
 
-  // Run the API call once when the component mounts
+
+  /* useEffect runs once when the component mounts.
+  This is where we trigger the API call. */
+
   useEffect(() => {
     fetchRestaurants();
   }, []);
 
-  // Show a simple loading message while waiting for the API
-  if (loading) return <Shimmer />;
 
-  
-/**
-   * Apply search filter
-   */
+
+  /* SHOW LOADING UI */
+
+  if (loading) return <Shimmer />;
+  /* SEARCH FILTERING */
+
+  /*  Normalize the search text
+  (remove spaces + convert to lowercase) */
+
   const normalizedSearch = search.trim().toLowerCase();
+  /* Filter restaurants based on search input */
 
   const filteredRestaurants = restaurants.filter((restaurant) => {
     const name = restaurant?.info?.name?.toLowerCase() ?? "";
-    return !normalizedSearch || name.includes(normalizedSearch);
+    return normalizedSearch
+      ? name.includes(normalizedSearch)
+      : true;
   });
 
-  
+  /* DEALS FILTER */
+
+  /* Some restaurants have special deals. We filter them separately for the deals section. */
+
+  const dealRestaurants = restaurants.filter(
+    (r) => r.info?.aggregatedDiscountInfoV3
+  );
+
+  /* MAIN UI */
+
   return (
     <Box sx={{ px: 4, py: 6 }}>
-      {/* Section heading */}
+      {/*  DEALS SECTION.   */}
+
+      {dealRestaurants.length > 0 && (
+
+        <Box
+          sx={{
+            mb: 6,
+            p: 3,
+            borderRadius: 3,
+            background:
+              "linear-gradient(90deg, #fff7e6 0%, #ffffff 85%)",
+          }}
+        >
+
+          <Typography variant="h6" fontWeight="bold" mb={2}>
+            Deals for You 🔥
+          </Typography>
+
+          {/* horizontal scrolling deal cards */}
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              overflowX: "auto",
+              py: 2,
+              px: 1,
+              "&::-webkit-scrollbar": { display: "none" },
+            }}
+          >
+            {dealRestaurants.map((item) => (
+
+              <DealCard
+                key={item.info.id}
+                restaurant={item.info}
+
+                onClick={() =>
+                  navigate(`/menu/${item.info.id}`, {
+                    state: {
+                      offer: item.info.aggregatedDiscountInfoV3,
+                    },
+                  })
+                }
+              />
+
+            ))}
+
+          </Stack>
+        </Box>
+
+      )}
+
+      {/* RESTAURANT GRID */}
+
       <Typography variant="h5" fontWeight="bold" mb={4}>
         Cafeteria Stalls
       </Typography>
-      
-
-      
-{/* Empty state if no results */}
-      {filteredRestaurants.length === 0 ? (
-        <Typography color="text.secondary">
-          No restaurants found
-        </Typography>
-      ) : (
-        <Grid container spacing={3}>
-          {filteredRestaurants.map((item) => {
-            const info = item.info;
 
 
-          return (
-            // Each restaurant card needs a unique key for React
-            <Grid key={info.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
-                }}
-              >
-                <CardActionArea onClick={() => navigate(`/menu/${info.id}`, {
-                  state: {
-                    offer: info.aggregatedDiscountInfoV3,
-                  }
-                })}>
+      <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
 
-                  {/* Restaurant image (Swiggy CDN auto-handles the ID) */}
-                  <CardMedia
-  component="img"
-  height="180"
-  image={
-    info.cloudinaryImageId
-      ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_400/${info.cloudinaryImageId}`
-      : img        // 👈 fallback image here
-  }
-  onError={(e: any) => {
-    e.target.src = img; // 👈 if Swiggy image fails, load fallback
-  }}
-  alt={info.name}
-/>
+        {filteredRestaurants.length === 0 ? (
 
-                  <CardContent>
-                    
-                    {/* Restaurant Name */}
-                    <Typography variant="h6" fontWeight="bold">
-                      {info.name}
-                    </Typography>
+          <Typography color="text.secondary">
+            No restaurants found
+          </Typography>
 
-                    {/* Cuisines list */}
-                    <Typography variant="body2" color="text.secondary">
-                      {info.cuisines.join(", ")}
-                    </Typography>
+        ) : (
 
-                    {/* Rating */}
-                    <Typography variant="body2">
-                      ⭐ {info.avgRatingString}
-                    </Typography>
+          <Grid container spacing={3}>
 
-                    {/* Cost display */}
-                    <Typography variant="body2" color="green">
-                      {info.costForTwo}
-                    </Typography>
+            {filteredRestaurants.map((item) => {
+              const info = item.info;
+              return (
+                <Grid item xs={12} sm={6} md={4} key={info.id}>
+                  <Card
+                    sx={{
+                      borderRadius: 3,
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
 
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
-      )}
+                      /* hover animation like Swiggy */
+
+                      transition: "all 0.25s ease",
+                      boxShadow: "0 3px 10px rgba(0,0,0,0.12)",
+
+                      "&:hover": {
+                        transform: "translateY(-6px)",
+                        boxShadow:
+                          "0 10px 22px rgba(0,0,0,0.18)",
+                      },
+                    }}
+                  >
+                    <CardActionArea
+                      sx={{
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "stretch",
+                      }}
+
+                      onClick={() =>
+                        navigate(`/menu/${info.id}`, {
+                          state: {
+                            offer:
+                              info.aggregatedDiscountInfoV3,
+                          },
+                        })
+                      }
+                    >
+                      {/* Restaurant Image */}
+                      <CardMedia
+                        component="img"
+                       
+                        image={
+                          info.cloudinaryImageId
+                            ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_400/${info.cloudinaryImageId}`
+                            : img
+                        }
+                        alt={info.name}
+                        sx={{
+                          height: 200,
+                          width: 350,
+                          objectFit: "cover",
+                          borderTopLeftRadius: 12,
+                          borderTopRightRadius: 12,
+                        }}
+                        onError={(e: any) => {
+                          e.target.src = img;
+                        }}
+                      />
+
+                      {/* Restaurant Info */}
+
+                      <CardContent sx={{ flexGrow: 1 }}>
+
+                        <Typography
+                          variant="h6"
+                          fontWeight="bold"
+                        >
+                          {info.name}
+                        </Typography>
+
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {info.cuisines?.join(", ") ||
+                            "Various cuisines"}
+                        </Typography>
+
+                        <Typography variant="body2">
+                          ⭐ {info.avgRatingString || "N/A"}
+                        </Typography>
+
+                        <Typography
+                          variant="body2"
+                          color="green"
+                        >
+                          {info.costForTwo}
+                        </Typography>
+
+                      </CardContent>
+
+                    </CardActionArea>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        )}
+      </Box>
     </Box>
   );
 }
