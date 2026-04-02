@@ -12,13 +12,27 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { Navigate } from "react-router-dom";
+
 export default function Cart() {
 
-  const { cartItems, restaurantName, addItem, removeItem, totalAmount } = useCart();
+  const {
+    cartItems,
+    restaurantName,
+    addItem,
+    removeItem,
+    totalAmount,
+    discountAmount,
+    finalAmount,
+    appliedOffer
+  } = useCart();
+
   const navigate = useNavigate();
-  const deliveryFee = 30;
-  const tax = Math.round(totalAmount * 0.05);
-  const grandTotal = totalAmount + deliveryFee + tax;
+
+  // OLD bill logic (kept for reference, NOT used anymore)
+  // const convenienceFee = 10;
+  // const tax = Math.round(totalAmount * 0.05);
+  // const grandTotal = totalAmount + convenienceFee + tax;
+
   return (
 
     <Box
@@ -32,7 +46,6 @@ export default function Cart() {
     >
 
       {/* Main Cart Card */}
-
       <Card
         sx={{
           width: 420,
@@ -42,12 +55,11 @@ export default function Cart() {
       >
 
         {/* Title */}
-
         <Typography variant="h5" fontWeight="bold" mb={2}>
           Your Cart
         </Typography>
 
-        {/*Restaurant Name */}
+        {/* Restaurant Name */}
         {restaurantName && (
           <Typography
             fontWeight="bold"
@@ -56,17 +68,14 @@ export default function Cart() {
           >
             {restaurantName}
           </Typography>
-        )}        
+        )}
 
         {/* Cart Items */}
-
         {cartItems.map((item) => (
-
           <Box key={item.id} sx={{ mb: 3 }}>
             <Typography fontWeight="bold">
               {item.name}
             </Typography>
-
 
             <Box
               display="flex"
@@ -76,7 +85,6 @@ export default function Cart() {
             >
 
               {/* Quantity Buttons */}
-
               <Box
                 sx={{
                   display: "flex",
@@ -85,7 +93,6 @@ export default function Cart() {
                   borderRadius: 1
                 }}
               >
-
                 <IconButton
                   size="small"
                   onClick={() => removeItem(item.id)}
@@ -100,43 +107,61 @@ export default function Cart() {
                 <IconButton
                   size="small"
                   onClick={() =>
-                    addItem({
-                      id: item.id,
-                      name: item.name,
-                      price: item.price
-                    },
-                    restaurantName || ""
-                )
+                    addItem(
+                      {
+                        id: item.id,
+                        name: item.name,
+                        price: item.price
+                      },
+                      restaurantName || ""
+                    )
                   }
                 >
                   <AddIcon fontSize="small" />
                 </IconButton>
-
               </Box>
 
-
               {/* Item Price */}
-
               <Typography fontWeight="bold">
                 ₹{item.price * item.quantity}
               </Typography>
-
             </Box>
-
           </Box>
-
         ))}
-
 
         <Divider sx={{ my: 2 }} />
 
+        {/* Subtotal */}
+        <Typography>
+          Subtotal: ₹{totalAmount}
+        </Typography>
 
-        {/* Bill Details */}
+        {/* Discount (only show if applied) */}
+        {discountAmount > 0 && (
+          <>
+            <Typography color="green">
+              Offer applied ({appliedOffer?.header})
+            </Typography>
 
+            <Typography color="green">
+              You saved ₹{Math.round(discountAmount)}
+            </Typography>
+          </>
+        )}
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* Final Payable Amount (IMPORTANT:
+            this replaces old grandTotal logic) */}
+        <Typography fontWeight="bold" variant="h6">
+          Payable Amount: ₹{Math.round(finalAmount)}
+        </Typography>
+
+        {/* Bill Details (old logic kept for reference) */}
+        {/* 
         <Typography fontWeight="bold" mb={1}>
           Bill Details
         </Typography>
-
 
         <Box display="flex" justifyContent="space-between">
           <Typography>Item Total</Typography>
@@ -144,8 +169,8 @@ export default function Cart() {
         </Box>
 
         <Box display="flex" justifyContent="space-between">
-          <Typography>Delivery Fee</Typography>
-          <Typography>₹{deliveryFee}</Typography>
+          <Typography>Convenience Fee</Typography>
+          <Typography>₹{convenienceFee}</Typography>
         </Box>
 
         <Box display="flex" justifyContent="space-between">
@@ -153,14 +178,9 @@ export default function Cart() {
           <Typography>₹{tax}</Typography>
         </Box>
 
-
         <Divider sx={{ my: 2 }} />
 
-
-        {/* Grand Total */}
-
         <Box display="flex" justifyContent="space-between">
-
           <Typography fontWeight="bold">
             TO PAY
           </Typography>
@@ -168,12 +188,10 @@ export default function Cart() {
           <Typography fontWeight="bold">
             ₹{grandTotal}
           </Typography>
-
         </Box>
-
+        */}
 
         {/* Checkout Button */}
-
         <Button
           variant="contained"
           fullWidth
@@ -190,7 +208,6 @@ export default function Cart() {
         </Button>
 
       </Card>
-
     </Box>
   );
 }

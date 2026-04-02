@@ -3,8 +3,12 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CardMedia from "@mui/material/CardMedia";
 import { useCart } from "../context/CartContext";
-
-export default function MenuItemRow({ item, restaurantName }: { item: any; restaurantName: string }) {
+type MenuItemRowProps = {
+  item: any;
+  restaurantName: string;
+  offer?: any;     // ✅ ADD
+};
+export default function MenuItemRow({ item, restaurantName, offer, }: { item: any; restaurantName: string; offer: any }) {
   if (!item) return null;
 
   const { cartItems, addItem, removeItem } = useCart();
@@ -23,7 +27,8 @@ export default function MenuItemRow({ item, restaurantName }: { item: any; resta
         name: item.name, 
         price
     }, 
-    restaurantName
+    restaurantName,
+    offer
     );
     // setQuantity(1);
     // onQuantityChange(1);

@@ -62,7 +62,7 @@ export default function Menu() {
 
   // Deal info passed from Home (Restaurant List page)
   const dealFromHome = location.state?.offer;
-  const offer = dealFromHome || restaurantInfo?.aggregatedDiscountInfoV3;
+  //const offer = dealFromHome || restaurantInfo?.aggregatedDiscountInfoV3;
 
   // Local search inside this restaurant (below filters)
   const [menuQuery, setMenuQuery] = useState("");
@@ -163,6 +163,16 @@ const groupedMenuItems = filteredMenuItems.reduce(
         )?.card?.card?.info;
 
       setRestaurantInfo(info);
+      
+// ✅ FINAL offer source (MOST IMPORTANT LINE)
+const offer =
+  restaurantInfo?.aggregatedDiscountInfoV3 ||
+  dealFromHome ||
+  null;
+
+// ✅ 👇 YAHI LOG LIKHO
+console.log("Resolved offer on Menu page:", offer);
+
       // Extract menu items
       const menuCards =
         json?.data?.cards?.find(
@@ -308,7 +318,9 @@ const groupedMenuItems = filteredMenuItems.reduce(
         <SearchIcon />
       </InputAdornment>
     ),
+    
   }}
+  
 />
  {/*    <TextField
  //       fullWidth
@@ -369,6 +381,7 @@ const groupedMenuItems = filteredMenuItems.reduce(
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
+      
 <Stack
   direction="row"
   spacing={1}
@@ -462,6 +475,7 @@ const groupedMenuItems = filteredMenuItems.reduce(
             key={item.id}
             item={item}
             restaurantName={restaurantName}
+            offer={dealFromHome}
           />
         ))}
       </Box>
@@ -481,6 +495,7 @@ const groupedMenuItems = filteredMenuItems.reduce(
     />
   ))
 )}
+
       {/* ---------- Restaurant footer (Swiggy-style) ---------- */}
       <RestaurantFooter
         name={restaurantInfo.name}
@@ -494,4 +509,5 @@ const groupedMenuItems = filteredMenuItems.reduce(
       <CartBar />
     </Box>
   );
+  
 }
