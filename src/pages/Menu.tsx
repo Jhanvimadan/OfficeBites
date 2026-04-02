@@ -26,7 +26,7 @@ import CartBar from "../components/CartBar";
 import VegIcon from "../assets/veg.svg";
 import NonVegIcon from "../assets/non-veg.svg";
 import { useSearch } from "../context/SearchContext";
-
+import MenuShimmer from "../components/MenuShimmer";
 type FilterType = "ALL" | "BESTSELLER";
 
 export default function Menu() {
@@ -68,8 +68,13 @@ export default function Menu() {
   const [menuQuery, setMenuQuery] = useState("");
 
   // Category filter
-  const [category, setCategory] = useState("ALL");
-  /**
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const categories = [
+    "ALL",
+    ...Array.from(
+      new Set(menuItems.map(item => item.category))
+    ),
+  ];  /**
    * Combined filtering logic
    * Order of filters:
    * 1. Veg / Non‑Veg
@@ -80,7 +85,7 @@ export default function Menu() {
   const { query } = useSearch();  
 
 const filteredMenuItems = menuItems.filter((item) => {
-  // ✅ 1. Global search (Navbar)
+  // 1. Global search (Navbar)
   const globalMatch = item.name
     ?.toLowerCase()
     .includes(query.toLowerCase());
@@ -91,8 +96,7 @@ const filteredMenuItems = menuItems.filter((item) => {
     .includes(menuQuery.toLowerCase());
 
   // 3. Category filter
-  const categoryMatch =
-    category === "ALL" || item.category === category;
+  const categoryMatch = selectedCategory === "ALL" || item.category === selectedCategory;
 
   // 4. Veg / Non‑veg filter
   const isVeg = item.isVeg === 1;
@@ -128,7 +132,19 @@ const filteredMenuItems = menuItems.filter((item) => {
 //
 //  return allowed;
 //});
+const groupedMenuItems = filteredMenuItems.reduce(
+  (acc: Record<string, any[]>, item: any) => {
+    const category = item.category || "Others";
 
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+
+    acc[category].push(item);
+    return acc;
+  },
+  {}
+);
 
   /**
    * Fetch menu + restaurant data
@@ -169,7 +185,7 @@ const filteredMenuItems = menuItems.filter((item) => {
        });
      }
    });
-
+    
       setMenuItems(items);
     } catch (error) {
       console.error("Menu API error:", error);
@@ -184,12 +200,8 @@ const filteredMenuItems = menuItems.filter((item) => {
   }, [id]);
 
   if (loading) {
-    return (
-      <Typography mt={5} textAlign="center">
-        Loading menu...
-      </Typography>
-    );
-  }
+  return <MenuShimmer />;
+}
 
   return (
 <Box sx={{ px: 4, py: 4 }}>
@@ -357,16 +369,41 @@ const filteredMenuItems = menuItems.filter((item) => {
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
-<Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: "auto" }}>
-  {["ALL", "Starters", "Main Course", "Beverages", "Desserts"].map((cat) => (
+<Stack
+  direction="row"
+  spacing={1}
+  sx={{ mb: 2, overflowX: "auto" }}
+>
+  {categories.map((cat) => (
     <Button
-      key={cat}
-      variant={category === cat ? "contained" : "outlined"}
-      onClick={() => setCategory(cat)}
-      sx={{ borderRadius: 5 }}
-    >
-      {cat}
-    </Button>
+  key={cat}
+  onClick={() => setSelectedCategory(cat)}
+  variant={selectedCategory === cat ? "contained" : "outlined"}
+  sx={{
+    borderRadius: 5,
+    whiteSpace: "nowrap",
+
+    /* Border color */
+    borderColor: "#00A783",
+
+    /* Text color when NOT selected */
+    color:
+      selectedCategory === cat ? "#fff" : "#00906f",
+
+    /* Background color when selected */
+    backgroundColor:
+      selectedCategory === cat ? "#00906f" : "transparent",
+
+    /* Hover styles */
+    "&:hover": {
+      backgroundColor:
+        selectedCategory === cat ? "#00906f" : "#E7F8F3",
+      borderColor: "#00A783",
+    },
+  }}
+>
+  {cat}
+</Button>
   ))}
 </Stack>
       <Divider sx={{ mb: 3 }} />
@@ -386,18 +423,64 @@ const filteredMenuItems = menuItems.filter((item) => {
 />*/}
 
       {/* ---------- Menu Items ---------- */}
+      {/*
       {filteredMenuItems.map((item: any) => (
         <MenuItemRow
           key={item.id}
           item={item}
           restaurantName={restaurantName}
           // This callback is CRITICAL for cart bar behaviour
-          onQuantityChange={(delta: number) => {
-            setCartCount((count) => Math.max(0, count + delta));
-          }}
+         // onQuantityChange={(delta: number) => {
+        //    setCartCount((count) => Math.max(0, count + delta));
+        //  }}
         />
       ))}
+*/}
+{/* ---------- Menu Items (Category‑wise rendering) ---------- */}
+{selectedCategory === "ALL" ? (
+  /*
+    When ALL is selected:
+    → Show all categories
+    → Each category has its own heading
+    → Items are shown grouped under headings
+  */
+  Object.entries(groupedMenuItems).map(
+    ([categoryName, items]) => (
+      <Box key={categoryName} sx={{ mb: 4}}>
+        {/* Category heading */}
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          sx={{ mb: 2 }}
+        >
+          {categoryName}
+        </Typography>
 
+        {/* Items under this category */}
+        {items.map((item) => (
+          <MenuItemRow
+            key={item.id}
+            item={item}
+            restaurantName={restaurantName}
+          />
+        ))}
+      </Box>
+    )
+  )
+) : (
+  /*
+    When a specific category is selected:
+    → Show items in that category only
+    → No category headings needed
+  */
+  filteredMenuItems.map((item: any) => (
+    <MenuItemRow
+      key={item.id}
+      item={item}
+      restaurantName={restaurantName}
+    />
+  ))
+)}
       {/* ---------- Restaurant footer (Swiggy-style) ---------- */}
       <RestaurantFooter
         name={restaurantInfo.name}

@@ -40,7 +40,7 @@ type Restaurant = {
 /* This component receives search text from Home page
 so we define it as a prop. */
 
-// ❌ Search is now controlled by Navbar via SearchContext
+// Search is now controlled by Navbar via SearchContext
 // type CafeteriaListProps = {
 //   search: string;
 // };
@@ -61,7 +61,7 @@ export default function CafeteriaList() {
   // React Router navigation
   const navigate = useNavigate();
 
-  // ✅ Global search query from navbar
+  // Global search query from navbar
   const { query } = useSearch();
 
   /*  SHIMMER LOADING UI
@@ -70,25 +70,40 @@ export default function CafeteriaList() {
   */
 
   const Shimmer = () => (
-    <Box sx={{ px: 4, py: 6 }}>
-      <Typography variant="h5" fontWeight="bold" mb={4}>
-        Loading Cafeteria Stalls...
-      </Typography>
+  <Box sx={{ px: 4, py: 6 }}>
+    <Skeleton
+      variant="text"
+      width="40%"
+      height={32}
+      sx={{ mb: 4 }}
+    />
 
-      <Grid container spacing={3}>
+    {/* Match actual restaurant container width */}
+    <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
+      <Grid container spacing={5}>
         {Array.from({ length: 6 }).map((_, i) => (
           <Grid item xs={12} sm={6} md={4} key={i}>
-            <Card sx={{ borderRadius: 3, p: 2 }}>
-              <Skeleton variant="rectangular" height={200} />
-              <Skeleton variant="text" sx={{ mt: 2 }} />
-              <Skeleton variant="text" width="60%" />
-              <Skeleton variant="text" width="40%" />
+            <Card sx={{ borderRadius: 3, overflow: "hidden" }}>
+              {/* Image skeleton*/}
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={300}
+              />
+
+              {/* Text area with padding */}
+              <Box sx={{ p: 2 }}>
+                <Skeleton variant="text" />
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="text" width="40%" />
+              </Box>
             </Card>
           </Grid>
         ))}
       </Grid>
     </Box>
-  );
+  </Box>
+);
 
   /* API CALL */
   /* This function fetches restaurant data from the API.
@@ -141,7 +156,7 @@ export default function CafeteriaList() {
     r.info.name.toLowerCase().includes(query.toLowerCase())
   );
 
-  // Old prop-based search logic (deprecated)
+  // prop-based search logic (deprecated)
   // const filteredRestaurants = restaurants.filter((restaurant) => {
   //   const name = restaurant?.info?.name?.toLowerCase() ?? "";
   //   return normalizedSearch
