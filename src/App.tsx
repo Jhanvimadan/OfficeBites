@@ -5,6 +5,16 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Menu from "./pages/Menu";
 import Navbar from "./components/Navbar";
+import { CartProvider } from "./context/CartContext";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import OrderConfirmation from "./pages/OrderConfirmation";
+import { Toaster } from "react-hot-toast";
+import Orders from "./pages/Orders";
+import { SearchProvider } from "./context/SearchContext";
+
+<Toaster />
+
 //import Footer from "./components/Footer";
 
 function Layout() {
@@ -27,8 +37,8 @@ function Layout() {
 
       <Routes>
         <Route path="/" element={<Login />} />
-
-        {/* ✅ PASS setOffice */}
+        <Route path="/cart" element={<Cart />} />
+        {/* PASS setOffice */}
         <Route
           path="/home"
           element={<Home office={office} setOffice={setOffice} />}
@@ -38,6 +48,9 @@ function Layout() {
           path="/menu/:id"
           element={<Menu />}
         />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/confirmation" element={<OrderConfirmation />} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
 
       {/*{!hideGlobalUI && <Footer />}*/}
@@ -48,7 +61,12 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout />
+    <SearchProvider>
+      <CartProvider>
+        <Toaster position="top-right" />
+        <Layout />
+      </CartProvider>
+      </SearchProvider>
     </BrowserRouter>
   );
 }

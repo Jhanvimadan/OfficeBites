@@ -17,6 +17,7 @@ import CardMedia from "@mui/material/CardMedia";
 
 import img from "../assets/image.png"; // fallback image if restaurant image fails
 import DealCard from "./DealCard"; // reusable component for deals
+import { useSearch } from "../context/SearchContext"; // ✅ added
 
 /*
 This defines the shape of restaurant data coming from the API.
@@ -39,13 +40,15 @@ type Restaurant = {
 /* This component receives search text from Home page
 so we define it as a prop. */
 
-type CafeteriaListProps = {
-  search: string;
-};
+// ❌ Search is now controlled by Navbar via SearchContext
+// type CafeteriaListProps = {
+//   search: string;
+// };
 
 /*   MAIN COMPONENT */
 
-export default function CafeteriaList({ search }: CafeteriaListProps) {
+// export default function CafeteriaList({ search }: CafeteriaListProps) {
+export default function CafeteriaList() {
 
   /* ---------------- STATE ---------------- */
 
@@ -58,7 +61,8 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
   // React Router navigation
   const navigate = useNavigate();
 
-
+  // ✅ Global search query from navbar
+  const { query } = useSearch();
 
   /*  SHIMMER LOADING UI
   While the API is loading, we show skeleton cards
@@ -67,31 +71,24 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
 
   const Shimmer = () => (
     <Box sx={{ px: 4, py: 6 }}>
-
       <Typography variant="h5" fontWeight="bold" mb={4}>
         Loading Cafeteria Stalls...
       </Typography>
 
       <Grid container spacing={3}>
         {Array.from({ length: 6 }).map((_, i) => (
-
           <Grid item xs={12} sm={6} md={4} key={i}>
             <Card sx={{ borderRadius: 3, p: 2 }}>
-
               <Skeleton variant="rectangular" height={200} />
               <Skeleton variant="text" sx={{ mt: 2 }} />
               <Skeleton variant="text" width="60%" />
               <Skeleton variant="text" width="40%" />
-
             </Card>
           </Grid>
-
         ))}
       </Grid>
     </Box>
   );
-
-
 
   /* API CALL */
   /* This function fetches restaurant data from the API.
@@ -112,16 +109,13 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
           ?.infoWithStyle?.restaurants ?? [];
 
       setRestaurants(restaurantData);
-
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
-
       // Loading finished
       setLoading(false);
     }
   };
-
 
   /* useEffect runs once when the component mounts.
   This is where we trigger the API call. */
@@ -130,25 +124,30 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
     fetchRestaurants();
   }, []);
 
-
-
   /* SHOW LOADING UI */
 
   if (loading) return <Shimmer />;
+
   /* SEARCH FILTERING */
 
   /*  Normalize the search text
   (remove spaces + convert to lowercase) */
 
-  const normalizedSearch = search.trim().toLowerCase();
-  /* Filter restaurants based on search input */
+  // const normalizedSearch = search.trim().toLowerCase(); // ❌ deprecated
 
-  const filteredRestaurants = restaurants.filter((restaurant) => {
-    const name = restaurant?.info?.name?.toLowerCase() ?? "";
-    return normalizedSearch
-      ? name.includes(normalizedSearch)
-      : true;
-  });
+  /* Filter restaurants based on navbar search input */
+
+  const filteredRestaurants = restaurants.filter((r) =>
+    r.info.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  // Old prop-based search logic (deprecated)
+  // const filteredRestaurants = restaurants.filter((restaurant) => {
+  //   const name = restaurant?.info?.name?.toLowerCase() ?? "";
+  //   return normalizedSearch
+  //     ? name.includes(normalizedSearch)
+  //     : true;
+  // });
 
   /* DEALS FILTER */
 
@@ -165,7 +164,6 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
       {/*  DEALS SECTION.   */}
 
       {dealRestaurants.length > 0 && (
-
         <Box
           sx={{
             mb: 6,
@@ -175,7 +173,6 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
               "linear-gradient(90deg, #fff7e6 0%, #ffffff 85%)",
           }}
         >
-
           <Typography variant="h6" fontWeight="bold" mb={2}>
             Deals for You 🔥
           </Typography>
@@ -192,11 +189,9 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
             }}
           >
             {dealRestaurants.map((item) => (
-
               <DealCard
                 key={item.info.id}
                 restaurant={item.info}
-
                 onClick={() =>
                   navigate(`/menu/${item.info.id}`, {
                     state: {
@@ -205,12 +200,9 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
                   })
                 }
               />
-
             ))}
-
           </Stack>
         </Box>
-
       )}
 
       {/* RESTAURANT GRID */}
@@ -219,19 +211,13 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
         Cafeteria Stalls
       </Typography>
 
-
       <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
-
         {filteredRestaurants.length === 0 ? (
-
           <Typography color="text.secondary">
             No restaurants found
           </Typography>
-
         ) : (
-
           <Grid container spacing={3}>
-
             {filteredRestaurants.map((item) => {
               const info = item.info;
               return (
@@ -262,12 +248,10 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
                         flexDirection: "column",
                         alignItems: "stretch",
                       }}
-
                       onClick={() =>
                         navigate(`/menu/${info.id}`, {
                           state: {
-                            offer:
-                              info.aggregatedDiscountInfoV3,
+                            offer: info.aggregatedDiscountInfoV3,
                           },
                         })
                       }
@@ -275,7 +259,6 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
                       {/* Restaurant Image */}
                       <CardMedia
                         component="img"
-                       
                         image={
                           info.cloudinaryImageId
                             ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_400/${info.cloudinaryImageId}`
@@ -295,9 +278,7 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
                       />
 
                       {/* Restaurant Info */}
-
                       <CardContent sx={{ flexGrow: 1 }}>
-
                         <Typography
                           variant="h6"
                           fontWeight="bold"
@@ -328,9 +309,7 @@ export default function CafeteriaList({ search }: CafeteriaListProps) {
                         >
                           {info.costForTwo}
                         </Typography>
-
                       </CardContent>
-
                     </CardActionArea>
                   </Card>
                 </Grid>

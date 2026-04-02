@@ -1,48 +1,54 @@
-import { useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CardMedia from "@mui/material/CardMedia";
+import { useCart } from "../context/CartContext";
 
-type MenuItemRowProps = {
-  item: any;
-  onQuantityChange: (delta: number) => void;
-};
-
-export default function MenuItemRow({
-  item,
-  onQuantityChange,
-}: MenuItemRowProps) {
+export default function MenuItemRow({ item, restaurantName }: { item: any; restaurantName: string }) {
   if (!item) return null;
 
-  const [quantity, setQuantity] = useState(0);
+  const { cartItems, addItem, removeItem } = useCart();
 
-  const price = item.price ?? item.defaultPrice ?? 0;
+  const cartItem = cartItems.find((i) => i.id === item.id);
+  const quantity = cartItem?.quantity ?? 0;
+
+  const price = (item.price ?? item.defaultPrice ?? 0) / 100;
+
+  // intent handlers
 
   // ADD button (0 → 1)
   const handleAdd = () => {
-    setQuantity(1);
-    onQuantityChange(1);
+    addItem({ 
+        id: item.id, 
+        name: item.name, 
+        price
+    }, 
+    restaurantName
+    );
+    // setQuantity(1);
+    // onQuantityChange(1);
   };
 
   // + button
-  const increment = () => {
-    setQuantity((q) => {
-        const nextq = q + 1;
-    onQuantityChange(1);
-    return nextq;
-    });
+  const handleIncrement = () => {
+    addItem({ id: item.id, name: item.name, price}, restaurantName);
+    // setQuantity((q) => {
+    //   const nextq = q + 1;
+    //   onQuantityChange(1);
+    //   return nextq;
+    // });
   };
 
-  // - button 
-  const decrement = () => {
-    setQuantity((prevQty) => {
-        if (prevQty===0) return 0;
-        
-        const nextQty = prevQty - 1;
-        onQuantityChange(-1);
-      return nextQty;
-    });
+  // - button
+  const handleDecrement = () => {
+    removeItem(item.id);
+    // setQuantity((prevQty) => {
+    //   if (prevQty === 0) return 0;
+    //
+    //   const nextQty = prevQty - 1;
+    //   onQuantityChange(-1);
+    //   return nextQty;
+    // });
   };
 
   return (
@@ -61,7 +67,7 @@ export default function MenuItemRow({
         </Typography>
 
         <Typography color="text.secondary">
-          ₹{price / 100}
+          ₹{price}
         </Typography>
 
         <Typography variant="body2" color="text.secondary">
@@ -89,15 +95,15 @@ export default function MenuItemRow({
           </Button>
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
-            <Box onClick={decrement} sx={{ cursor: "pointer" }}>
+            <IconButton onClick={handleDecrement}>
               <RemoveIcon />
-            </Box>
+            </IconButton>
 
             <Typography>{quantity}</Typography>
 
-            <Box onClick={increment} sx={{ cursor: "pointer" }}>
+            <IconButton onClick={handleIncrement}>
               <AddIcon />
-            </Box>
+            </IconButton>
           </Box>
         )}
       </Box>

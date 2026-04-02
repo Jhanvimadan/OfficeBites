@@ -10,7 +10,9 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  Button,
 } from "@mui/material";
+
 import StarIcon from "@mui/icons-material/Star";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,6 +25,7 @@ import CartBar from "../components/CartBar";
 // SVG assets for Veg / Non-Veg switches
 import VegIcon from "../assets/veg.svg";
 import NonVegIcon from "../assets/non-veg.svg";
+import { useSearch } from "../context/SearchContext";
 
 type FilterType = "ALL" | "BESTSELLER";
 
@@ -32,7 +35,7 @@ export default function Menu() {
 
   // Header information for restaurant
   const [restaurantInfo, setRestaurantInfo] = useState<any>(null);
-
+  const restaurantName = restaurantInfo?.name || "";
   // All menu items fetched from API
   const [menuItems, setMenuItems] = useState<any[]>([]);
 
@@ -44,11 +47,11 @@ export default function Menu() {
   const [filter, setFilter] = useState<FilterType>("ALL");
 
   // Search box value
-  const [searchText, setSearchText] = useState("");
+ // const [searchText, setSearchText] = useState("");
 
   // GLOBAL cart count
   // This controls whether CartBar appears or not
-  const [cartCount, setCartCount] = useState(0);
+  //const [cartCount, setCartCount] = useState(0);
 
   // Loading indicator
   const [loading, setLoading] = useState(true);
@@ -57,10 +60,15 @@ export default function Menu() {
   // Prefer deal passed from Home, fallback to API if ever provided
   const location = useLocation();
 
-// Deal info passed from Home (Restaurant List page)
+  // Deal info passed from Home (Restaurant List page)
   const dealFromHome = location.state?.offer;
   const offer = dealFromHome || restaurantInfo?.aggregatedDiscountInfoV3;
 
+  // Local search inside this restaurant (below filters)
+  const [menuQuery, setMenuQuery] = useState("");
+
+  // Category filter
+  const [category, setCategory] = useState("ALL");
   /**
    * Combined filtering logic
    * Order of filters:
@@ -68,33 +76,59 @@ export default function Menu() {
    * 2. Bestseller
    * 3. Search text
    */
-  const filteredMenuItems = menuItems.filter((item) => {
-    const isVeg = item.isVeg === 1;
-    const isNonVeg = item.isVeg === 0;
+  //dish name filter
+  const { query } = useSearch();  
 
-    let allowed = true;
+const filteredMenuItems = menuItems.filter((item) => {
+  // ✅ 1. Global search (Navbar)
+  const globalMatch = item.name
+    ?.toLowerCase()
+    .includes(query.toLowerCase());
 
-    // Veg / Non-Veg logic
-    if (showVeg !== showNonVeg) {
-      if (showVeg && !isVeg) allowed = false;
-      if (showNonVeg && !isNonVeg) allowed = false;
-    }
+  // 2. Local menu search
+  const localMatch = item.name
+    .toLowerCase()
+    .includes(menuQuery.toLowerCase());
 
-    // Bestseller filter
-    if (filter === "BESTSELLER" && !item.isBestseller) {
-      allowed = false;
-    }
+  // 3. Category filter
+  const categoryMatch =
+    category === "ALL" || item.category === category;
 
-    // Search filter
-    if (
-      searchText.trim() &&
-      !item.name.toLowerCase().includes(searchText.toLowerCase())
-    ) {
-      allowed = false;
-    }
+  // 4. Veg / Non‑veg filter
+  const isVeg = item.isVeg === 1;
+  const isNonVeg = item.isVeg === 0;
 
-    return allowed;
-  });
+  let allowed = true;
+
+  if (showVeg !== showNonVeg) {
+    if (showVeg && !isVeg) allowed = false;
+    if (showNonVeg && !isNonVeg) allowed = false;
+  }
+
+  // 5. Bestseller filter
+  if (filter === "BESTSELLER" && !item.isBestseller) {
+    allowed = false;
+  }
+
+  return (
+    allowed &&
+    globalMatch &&
+    localMatch &&
+    categoryMatch
+  );
+});
+
+//  // Search filter
+//  if (
+//    searchText.trim() &&
+//    !item.name.toLowerCase().includes(searchText.toLowerCase())
+//  ) {
+//    allowed = false;
+//  }
+//
+//  return allowed;
+//});
+
 
   /**
    * Fetch menu + restaurant data
@@ -113,7 +147,6 @@ export default function Menu() {
         )?.card?.card?.info;
 
       setRestaurantInfo(info);
-
       // Extract menu items
       const menuCards =
         json?.data?.cards?.find(
@@ -123,16 +156,19 @@ export default function Menu() {
       const items: any[] = [];
 
       menuCards?.forEach((card: any) => {
-        if (card?.card?.card?.itemCards) {
-          card.card.card.itemCards.forEach((i: any) => {
-            items.push({
-              ...i.card.info,
-              // Mocked bestseller flag (API doesn't provide this)
-              isBestseller: Math.random() > 0.7,
-            });
-          });
-        }
-      });
+     if (card?.card?.card?.itemCards) {
+       const categoryTitle =
+         card.card.card.title || "Others";
+
+       card.card.card.itemCards.forEach((i: any) => {
+         items.push({
+           ...i.card.info,
+           category: categoryTitle, 
+           isBestseller: Math.random() > 0.7,
+         });
+       });
+     }
+   });
 
       setMenuItems(items);
     } catch (error) {
@@ -249,27 +285,41 @@ export default function Menu() {
 
       {/* ---------- Search Bar ---------- */}
       <TextField
-        fullWidth
-        placeholder="Search for dishes"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        sx={{ mb: 3, bgcolor: "#fff", borderRadius: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon color="action" />
-            </InputAdornment>
-          ),
-          endAdornment:
-            searchText && (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setSearchText("")}>
-                  <CloseIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
-        }}
-      />
+  fullWidth
+  placeholder="Search in this menu"
+  value={menuQuery}
+  onChange={(e) => setMenuQuery(e.target.value)}
+  sx={{ mb: 3, bgcolor: "#fff", borderRadius: 2 }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <SearchIcon />
+      </InputAdornment>
+    ),
+  }}
+/>
+ {/*    <TextField
+ //       fullWidth
+ //       placeholder="Search for dishes"
+ //       value={searchText}
+ //       onChange={(e) => setSearchText(e.target.value)}
+ //       sx={{ mb: 3, bgcolor: "#fff", borderRadius: 2 }}
+ //       InputProps={{
+ //         startAdornment: (
+ //           <InputAdornment position="start">
+ //             <SearchIcon color="action" />
+ //           </InputAdornment>
+ //         ),
+ //         endAdornment:
+ //           searchText && (
+ //             <InputAdornment position="end">
+ //               <IconButton onClick={() => setSearchText("")}>
+ //                 <CloseIcon />
+ //               </IconButton>
+ //             </InputAdornment>
+ //           ),
+ //       }}
+ //     />
 
       {/* ---------- Filters ---------- */}
       <Stack direction="row" alignItems="center" spacing={3} sx={{ mb: 3 }}>
@@ -307,15 +357,41 @@ export default function Menu() {
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
-
+<Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: "auto" }}>
+  {["ALL", "Starters", "Main Course", "Beverages", "Desserts"].map((cat) => (
+    <Button
+      key={cat}
+      variant={category === cat ? "contained" : "outlined"}
+      onClick={() => setCategory(cat)}
+      sx={{ borderRadius: 5 }}
+    >
+      {cat}
+    </Button>
+  ))}
+</Stack>
       <Divider sx={{ mb: 3 }} />
+     {/* <TextField
+  fullWidth
+  placeholder="Search in this menu"
+  value={menuQuery}
+  onChange={(e) => setMenuQuery(e.target.value)}
+  sx={{ mb: 3, bgcolor: "#fff", borderRadius: 2 }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <SearchIcon />
+      </InputAdornment>
+    ),
+  }}
+/>*/}
 
       {/* ---------- Menu Items ---------- */}
-      {filteredMenuItems.map((item) => (
+      {filteredMenuItems.map((item: any) => (
         <MenuItemRow
           key={item.id}
           item={item}
-          // ✅ This callback is CRITICAL for cart bar behaviour
+          restaurantName={restaurantName}
+          // This callback is CRITICAL for cart bar behaviour
           onQuantityChange={(delta: number) => {
             setCartCount((count) => Math.max(0, count + delta));
           }}
@@ -330,8 +406,9 @@ export default function Menu() {
         fssai={restaurantInfo.fssaiLicenseNo}
       />
 
-      {/* ---------- Sticky cart bar ---------- */}
-      <CartBar itemCount={cartCount} />
+      {/* ---------- Sticky cart bar ---------- }
+      <CartBar itemCount={cartCount} /> */}
+      <CartBar />
     </Box>
   );
 }

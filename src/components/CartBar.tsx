@@ -1,35 +1,38 @@
 import { Box, Typography, Button } from "@mui/material";
+import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
-type CartBarProps = {
-  itemCount: number;
-};
+export default function CartBar() {
+  const { cartItems, totalAmount } = useCart();
+  const navigate = useNavigate();
 
-export default function CartBar({ itemCount }: CartBarProps) {
-  if (itemCount === 0) return null;
+  if (cartItems.length === 0) return null;
 
   return (
-    <Box
-      sx={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        bgcolor: "#1ba672",
-        color: "white",
-        p: 2,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        zIndex: 1000,
-      }}
-    >
-      <Typography fontWeight="bold">
-        {itemCount} item{itemCount > 1 ? "s" : ""} added
+   <Box
+  sx={{
+    position: "fixed",
+    bottom: 16,
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: "#1ba672",
+    color: "white",
+    px: 3,
+    py: 1.5,
+    borderRadius: 2,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "90%",
+    maxWidth: 420,
+    zIndex: 1500,
+  }}
+>
+      <Typography>
+        {cartItems.length} items • ₹{totalAmount}
       </Typography>
-
-      <Button variant="contained" color="success">
-        View Cart
-      </Button>
+      <Button onClick={() => navigate("/cart")}>View Cart</Button>
     </Box>
   );
 }
+``
