@@ -51,8 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   item: Omit<CartItem, "quantity">,
   restName: string,
   offer?: Offer,
-  restaurantImageId?: string,
-  force = false
+  restaurantImageId?: string
 ) => {
   // CART RESTAURANT MISMATCH CHECK
   if (restaurantName && restaurantName !== restName) {
@@ -132,28 +131,58 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     0
   );
 
-  // completes the order after payment
-  const completeOrder = (paymentMode: "UPI" | "COUNTER") => {
-    if (cartItems.length === 0 || !restaurantName) {
-      throw new Error("Cannot place order: cart or restaurant missing");
-    }
+// completes the order after payment
+const completeOrder = (paymentMode: "UPI" | "COUNTER") => {
+  if (cartItems.length === 0 || !restaurantName) {
+    throw new Error("Cannot place order: cart or restaurant missing");
+  }
 
-    const token = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-    const prepTime = 10 + cartItems.length * 2;
+  const email = localStorage.getItem("currentUserEmail");
+  if (!email) {
+    throw new Error("User not logged in");
+  }
 
-    const order = {
-      token,
-      restaurantName,
-      createdAt: Date.now(),
-      prepTime,
-      paymentMode,
-      status: "IN_PROGRESS",
-    };
+  const token = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+  const prepTime = 10 + cartItems.length * 2;
+  const now = Date.now();
 
-    localStorage.setItem("lastOrder", JSON.stringify(order));
-    clearCart();
+  // Current order (for live tracking)
+  const order = {
+    token,
+    restaurantName,
+    restaurantImageId,
+    items: cartItems,
+    totalAmount: finalAmount,
+    paymentMode,
+    prepTime,
+    status: "IN_PROGRESS",
+    createdAt: now,
   };
 
+  // 1. Store current order (used by CurrentOrder page)
+  localStorage.setItem("lastOrder", JSON.stringify(order));
+
+  // 2. Store into per‑email order history
+  const historyKey = `orderHistory_${email}`;
+  const existingHistory = JSON.parse(
+    localStorage.getItem(historyKey) || "[]"
+  );
+
+  const historyOrder = {
+    ...order,
+    status: "COMPLETED",
+    completedAt: now,
+  };
+
+  existingHistory.unshift(historyOrder);
+  localStorage.setItem(
+    historyKey,
+    JSON.stringify(existingHistory)
+  );
+
+  // ✅ 3. Clear cart session
+  clearCart();
+};
   return (
     <CartContext.Provider
       value={{

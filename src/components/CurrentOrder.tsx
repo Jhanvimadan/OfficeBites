@@ -46,7 +46,7 @@ export default function CurrentOrder({ order }: any) {
       hasNotified.current = true;
 
       // Notify user
-      toast.success("🎉 Your order is ready! Please collect it.");
+      //toast.success("🎉 Your order is ready! Please collect it.");
 
       // Read existing order history (or empty array)
       const history = JSON.parse(

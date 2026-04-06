@@ -1,7 +1,39 @@
+# OfficeBites 🍽️
 
-# OfficeBites
+OfficeBites is a **smart cafeteria ordering web application** built with **React, TypeScript, and Vite**.  
+It simulates an office or campus cafeteria experience where users can browse food stalls, place digital orders, track preparation status, and view order history — all with realistic UX and business rules.
 
-OfficeBites is a smart cafeteria ordering web application built with React and Vite. It simulates an office or campus cafeteria experience where users can browse food stalls, search across menus, build a cart, complete checkout, and track orders with a pickup token.
+This project is **frontend-focused** and designed to demonstrate:
+- modern React architecture
+- global state management
+- route protection
+- session vs account modeling
+- scalable UI patterns
+
+---
+
+## 🧠 Core Concepts Used
+
+- **React Context API** for global state (Cart, Search)
+- **Route guards** using React Router
+- **Session vs Account scoped data**
+- **Derived UI & calculated state**
+- **Clean separation of UI & business logic**
+- **Frontend architecture ready for backend integration**
+
+---
+
+## 🧩 Tech Stack
+
+- React 19
+- Vite
+- TypeScript
+- React Router DOM
+- Material UI (MUI)
+- Axios
+- LocalStorage (for persistence simulation)
+
+---
 
 ## 🚀 Features
 
@@ -15,17 +47,7 @@ OfficeBites is a smart cafeteria ordering web application built with React and V
 - See current and past order history
 - Use profile dropdown to access orders and order status
 
-## 🧩 Tech Stack
-
-- React 19
-- Vite
-- TypeScript
-- React Router DOM
-- Material UI (MUI)
-- React Hot Toast
-- React QR Code
-- Axios
-- Tailwind CSS
+---
 
 ## 📁 Project Structure
 
@@ -59,7 +81,12 @@ src/
 │   ├── Login.tsx
 │   ├── Menu.tsx
 │   ├── OrderConfirmation.tsx
-│   └── Orders.tsx
+│   ├── Orders.tsx
+│   ├── Profile.tsx
+│  
+├── utils/                  
+│   └── logout.ts             
+│   └── orderStorage.ts
 ├── App.tsx
 └── main.tsx
 ```
@@ -134,6 +161,3 @@ npm run preview
 
 This project is a frontend-focused demo app and uses simulated payment and order flows. It is designed for prototyping and UX presentation rather than a production-ready backend deployment.
 
-## 📄 License
-
-This repository does not specify a license. Add one if you want to share it publicly.
