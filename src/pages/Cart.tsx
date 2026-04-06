@@ -4,7 +4,9 @@ import {
   Divider,
   Button,
   Card,
-  IconButton
+  IconButton,
+  Avatar,
+  Stack
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -18,6 +20,7 @@ export default function Cart() {
   const {
     cartItems,
     restaurantName,
+    restaurantImageId,
     addItem,
     removeItem,
     totalAmount,
@@ -60,16 +63,29 @@ export default function Cart() {
         </Typography>
 
         {/* Restaurant Name */}
-        {restaurantName && (
+        {/* Restaurant Name + Logo */}
+      {restaurantName && (
+        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+          {restaurantImageId && (
+            <Avatar
+              src={`https://media-assets.swiggy.com/swiggy/image/upload/w_80/${restaurantImageId}`}
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 1,
+                border: "1px solid #e0e0e0",
+              }}
+            />
+          )}
+      
           <Typography
             fontWeight="bold"
             color="text.secondary"
-            mb={2}
           >
             {restaurantName}
           </Typography>
-        )}
-
+        </Stack>
+      )}
         {/* Cart Items */}
         {cartItems.map((item) => (
           <Box key={item.id} sx={{ mb: 3 }}>

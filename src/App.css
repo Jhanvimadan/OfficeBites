@@ -8,10 +8,10 @@
   transition: border-color 0.3s;
   margin-bottom: 24px;
 
-  .counter:hover {
+  &:hover {
     border-color: var(--accent-border);
   }
-  .counter:focus-visible {
+  &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }

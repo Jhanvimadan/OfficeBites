@@ -13,20 +13,25 @@ import { Toaster } from "react-hot-toast";
 import Orders from "./pages/Orders";
 import { SearchProvider } from "./context/SearchContext";
 
-<Toaster />
-
-//import Footer from "./components/Footer";
+import Footer from "./components/Footer";
 
 function Layout() {
   // OFFICE STATE
   const [office, setOffice] = useState<string | null>(null);
-
   const location = useLocation();
-  const hideGlobalUI = location.pathname === "/";
+
+  // ✅ Navbar: hide ONLY on login page
+  const hideNavbar = location.pathname === "/";
+
+  // ✅ Footer: hide on login + menu pages
+  const hideFooter =
+    location.pathname === "/" ||
+    location.pathname.startsWith("/menu");
 
   return (
     <>
-      {!hideGlobalUI && (
+      {/* Navbar */}
+      {!hideNavbar && (
         <Navbar
           office={office}
           onChangeLocation={() => {
@@ -38,22 +43,18 @@ function Layout() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/cart" element={<Cart />} />
-        {/* PASS setOffice */}
         <Route
           path="/home"
           element={<Home office={office} setOffice={setOffice} />}
         />
-
-        <Route
-          path="/menu/:id"
-          element={<Menu />}
-        />
+        <Route path="/menu/:id" element={<Menu />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/confirmation" element={<OrderConfirmation />} />
         <Route path="/orders" element={<Orders />} />
       </Routes>
 
-      {/*{!hideGlobalUI && <Footer />}*/}
+      {/* Footer */}
+      {!hideFooter && <Footer />}
     </>
   );
 }

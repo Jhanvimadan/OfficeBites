@@ -21,10 +21,12 @@ type CartContextType = {
   cartItems: CartItem[];
   restaurantName: string | null;
   appliedOffer: Offer | null;
+  restaurantImageId: string | null;
   addItem: (
     item: Omit<CartItem, "quantity">,
     restaurantName: string,
-    offer?: Offer
+    offer?: Offer,
+    restaurantImageId?: string
   ) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
@@ -42,14 +44,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [appliedOffer, setAppliedOffer] = useState<Offer | null>(null);
+  const [restaurantImageId, setRestaurantImageId] = useState<string | null>(null);
 
   // cart belongs to one restaurant
   const addItem = (
-    item: Omit<CartItem, "quantity">,
-    restName: string,
-    offer?: Offer
-  ) => {
-    setRestaurantName((prev) => prev ?? restName);
+  item: Omit<CartItem, "quantity">,
+  restName: string,
+  offer?: Offer,
+  restaurantImageId?: string,
+  force = false
+) => {
+  // CART RESTAURANT MISMATCH CHECK
+  if (restaurantName && restaurantName !== restName) {
+    throw new Error("DIFFERENT_RESTAURANT");
+  }
+
+  setRestaurantName((prev) => prev ?? restName);
+
+  setRestaurantImageId((prev) => prev ?? restaurantImageId ?? null);
 
     // capture offer only once (first item)
     if (offer && !appliedOffer) {
@@ -87,9 +99,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCartItems([]);
     setRestaurantName(null);
     setAppliedOffer(null);
+    setRestaurantImageId(null);
   };
 
-  // subtotal
+  // subtotal                    
   const totalAmount = cartItems.reduce(
     (sum, i) => sum + i.price * i.quantity,
     0
@@ -146,6 +159,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       value={{
         cartItems,
         restaurantName,
+        restaurantImageId,
         appliedOffer,
         addItem,
         removeItem,

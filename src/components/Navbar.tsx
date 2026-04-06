@@ -4,18 +4,18 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  TextField, // ✅ added
+  TextField,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ useLocation added
+import { useNavigate, useLocation } from "react-router-dom"; 
 import { useState } from "react";
 import logo from "../assets/logo.png";
-import { useSearch } from "../context/SearchContext"; // ✅ added
+import { useSearch } from "../context/SearchContext"; 
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ needed for route-aware search
-  const { query, setQuery } = useSearch(); // ✅ navbar controls global search
+  const location = useLocation(); // needed for route-aware search
+  const { query, setQuery } = useSearch(); // navbar controls global search
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -66,7 +66,7 @@ export default function Navbar() {
           <Typography
             variant="h5"
             fontWeight="bold"
-            onClick={() => navigate("/home")} // ✅ fixed casing
+            onClick={() => navigate("/home")}
             sx={{
               cursor: "pointer",
               "&:hover": {
@@ -110,7 +110,7 @@ export default function Navbar() {
         {/* Home */}
         <Typography
           variant="h6"
-          onClick={() => navigate("/home")} // ✅ fixed casing
+          onClick={() => navigate("/home")}
           sx={{
             cursor: "pointer",
             fontWeight: "bold",
@@ -123,7 +123,7 @@ export default function Navbar() {
         {/* Cart */}
         <Typography
           variant="h6"
-          onClick={() => navigate("/cart")} // ✅ fixed casing
+          onClick={() => navigate("/cart")}
           sx={{
             cursor: "pointer",
             "&:hover": {
@@ -135,7 +135,7 @@ export default function Navbar() {
         </Typography>
 
         {/* Orders */}
-        {/* ❌ moved out of navbar (now only in profile dropdown) */}
+        {/* moved out of navbar (now only in profile dropdown) */}
         {/* 
         <Typography
           variant="h6"

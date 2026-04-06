@@ -23,7 +23,7 @@ export default function SearchBar({
       fullWidth
       value={value}
       placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)} // ✅ correct callback
+      onChange={(e) => onChange(e.target.value)} 
       sx={{ mb: 3, bgcolor: "#fff", borderRadius: 2 }}
       InputProps={{
         startAdornment: (

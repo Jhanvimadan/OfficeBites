@@ -64,7 +64,6 @@ export default function DealCard({ restaurant, onClick }: DealCardProps) {
         {restaurant.name}
       </Typography>
 
-      {/* Optional small hint */}
       <Typography
         variant="caption"
         color="text.secondary"

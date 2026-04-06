@@ -11,6 +11,7 @@ import {
   InputAdornment,
   IconButton,
   Button,
+  Avatar
 } from "@mui/material";
 
 import StarIcon from "@mui/icons-material/Star";
@@ -36,6 +37,8 @@ export default function Menu() {
   // Header information for restaurant
   const [restaurantInfo, setRestaurantInfo] = useState<any>(null);
   const restaurantName = restaurantInfo?.name || "";
+  const [restaurantImageId, setRestaurantImageId] = useState<string | null>(null);
+
   // All menu items fetched from API
   const [menuItems, setMenuItems] = useState<any[]>([]);
 
@@ -164,14 +167,11 @@ const groupedMenuItems = filteredMenuItems.reduce(
 
       setRestaurantInfo(info);
       
-// ✅ FINAL offer source (MOST IMPORTANT LINE)
+// FINAL offer source
 const offer =
   restaurantInfo?.aggregatedDiscountInfoV3 ||
   dealFromHome ||
   null;
-
-// ✅ 👇 YAHI LOG LIKHO
-console.log("Resolved offer on Menu page:", offer);
 
       // Extract menu items
       const menuCards =
@@ -218,9 +218,27 @@ console.log("Resolved offer on Menu page:", offer);
     {/* ---------- Restaurant Header ---------- */}
     {restaurantInfo && (
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold">
-          {restaurantInfo.name}
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={2}>
+  {/* Stall / Restaurant Logo */}
+  {restaurantInfo.cloudinaryImageId && (
+    <Avatar
+      src={`https://media-assets.swiggy.com/swiggy/image/upload/w_100/${restaurantInfo.cloudinaryImageId}`}
+      alt={restaurantInfo.name}
+      sx={{
+        width: 56,
+        height: 56,
+        borderRadius: 2,
+        border: "1px solid #e0e0e0",
+      }}
+    />
+  )}
+
+  {/* Restaurant Name */}
+  <Typography variant="h4" fontWeight="bold">
+    {restaurantInfo.name}
+  </Typography>
+</Stack>
+
 
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           ⭐ {restaurantInfo.avgRatingString} (
@@ -476,6 +494,7 @@ console.log("Resolved offer on Menu page:", offer);
             item={item}
             restaurantName={restaurantName}
             offer={dealFromHome}
+            restaurantImageId={restaurantInfo?.cloudinaryImageId}
           />
         ))}
       </Box>

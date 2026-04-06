@@ -15,12 +15,12 @@ export default function Orders() {
         Your Orders
       </Typography>
 
-      {/* ✅ Current order section */}
+      {/* Current order section */}
       {hasActiveOrder && (
         <CurrentOrder order={currentOrder} />
       )}
 
-      {/* ✅ Past orders section (can always show) */}
+      {/* Past orders section (can always show) */}
       <PastOrders />
     </Box>
   );

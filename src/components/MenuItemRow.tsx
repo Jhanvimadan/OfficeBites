@@ -1,42 +1,53 @@
-import { Box, Typography, Button, IconButton } from "@mui/material";
+import { Box, Typography, Button, IconButton, Dialog, DialogTitle, DialogContent , DialogActions } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CardMedia from "@mui/material/CardMedia";
-import { useCart } from "../context/CartContext";
+import { useCart} from "../context/CartContext";
+import { useState } from "react";
 type MenuItemRowProps = {
   item: any;
   restaurantName: string;
-  offer?: any;     // ✅ ADD
+  offer?: any;   
+  restaurantImageId?: string | null;  
 };
-export default function MenuItemRow({ item, restaurantName, offer, }: { item: any; restaurantName: string; offer: any }) {
+export default function MenuItemRow({ item, restaurantName, offer, restaurantImageId }: { item: any; restaurantName: string; offer: any; restaurantImageId?: string | null }) {
   if (!item) return null;
 
-  const { cartItems, addItem, removeItem } = useCart();
+  const { cartItems, addItem, removeItem, clearCart } = useCart();
 
   const cartItem = cartItems.find((i) => i.id === item.id);
   const quantity = cartItem?.quantity ?? 0;
 
+  // Price calculation logic
   const price = (item.price ?? item.defaultPrice ?? 0) / 100;
-
+  const [showConfirm, setShowConfirm] = useState(false);
   // intent handlers
 
   // ADD button (0 → 1)
   const handleAdd = () => {
-    addItem({ 
-        id: item.id, 
-        name: item.name, 
-        price
-    }, 
-    restaurantName,
-    offer
+  try {
+    addItem(
+      {
+        id: item.id,
+        name: item.name,
+        price,
+      },
+      restaurantName,
+      offer,
+      restaurantImageId
     );
+  } catch (err: any) {
+    if (err.message === "DIFFERENT_RESTAURANT") {
+      setShowConfirm(true);
+    }
+  }
     // setQuantity(1);
     // onQuantityChange(1);
   };
 
   // + button
   const handleIncrement = () => {
-    addItem({ id: item.id, name: item.name, price}, restaurantName);
+    addItem({ id: item.id, name: item.name, price}, restaurantName, offer, restaurantImageId);
     // setQuantity((q) => {
     //   const nextq = q + 1;
     //   onQuantityChange(1);
@@ -111,7 +122,46 @@ export default function MenuItemRow({ item, restaurantName, offer, }: { item: an
             </IconButton>
           </Box>
         )}
+        
       </Box>
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)}>
+         <DialogTitle>Replace cart?</DialogTitle>
+       
+         <DialogContent>
+           <Typography>
+             Your cart has items from a different restaurant.
+             To add items from <strong>{restaurantName}</strong>,
+             your current cart will be cleared.
+           </Typography>
+         </DialogContent>
+       
+         <DialogActions>
+           <Button onClick={() => setShowConfirm(false)}>
+             Cancel
+           </Button>
+       
+           <Button
+             variant="contained"
+             color="error"
+             onClick={() => {
+               clearCart();        //empty previous cart
+               addItem(
+                 {
+                   id: item.id,
+                   name: item.name,
+                   price,
+                 },
+                 restaurantName,
+                 offer,
+                 restaurantImageId
+               );
+               setShowConfirm(false);
+             }}
+           >
+             Clear & Add
+           </Button>
+         </DialogActions>
+       </Dialog>
     </Box>
   );
 }
