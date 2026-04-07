@@ -43,8 +43,11 @@ export default function Login() {
       setError(err); //show error if invalid
       return;
     }
-    localStorage.setItem("currentUserEmail", email);
-    navigate("/home", { state: { showLocationModal: true } });  //navigate to homepage and trigger locationModal
+
+  // Store session identity FIRST
+  localStorage.setItem("currentUserEmail", email.trim());
+
+  navigate("/home"); //navigate to homepage and trigger locationModal
   };
 
   return (

@@ -13,7 +13,6 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { Navigate } from "react-router-dom";
 
 export default function Cart() {
 
@@ -30,14 +29,14 @@ export default function Cart() {
   } = useCart();
 
   const navigate = useNavigate();
-
+  const isCartEmpty = cartItems.length === 0;
   // OLD bill logic (kept for reference, NOT used anymore)
   // const convenienceFee = 10;
   // const tax = Math.round(totalAmount * 0.05);
   // const grandTotal = totalAmount + convenienceFee + tax;
 
-  return (
 
+  return (
     <Box
       sx={{
         background: "#f5f5f5",
@@ -47,15 +46,37 @@ export default function Cart() {
         py: 5
       }}
     >
+  {isCartEmpty ? (
+  <Box
+    sx={{
+      textAlign: "center",
+      py: 8,
+      color: "text.secondary",
+    }}
+  >
+    <Typography variant="h6" fontWeight="bold" mb={1}>
+      Your cart is empty 🛒
+    </Typography>
 
-      {/* Main Cart Card */}
+    <Typography mb={3}>
+      No items added yet. Please add items to continue.
+    </Typography>
+
+    <Button
+      variant="contained"
+      onClick={() => navigate("/home")}
+    >
+      Browse Cafeteria Stalls
+    </Button>
+  </Box>
+  ) : (
+      /* Main Cart Card */
       <Card
         sx={{
           width: 420,
           p: 3,
           borderRadius: 3
-        }}
-      >
+        }}>
 
         {/* Title */}
         <Typography variant="h5" fontWeight="bold" mb={2}>
@@ -218,12 +239,15 @@ export default function Cart() {
               background: "#e64a00"
             }
           }}
+          
           onClick={() => navigate("/checkout")}
+          disabled={isCartEmpty}
         >
           Proceed to Checkout
         </Button>
 
       </Card>
+)}
     </Box>
   );
 }

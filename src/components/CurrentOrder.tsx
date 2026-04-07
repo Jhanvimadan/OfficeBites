@@ -19,9 +19,6 @@ export default function CurrentOrder({ order }: any) {
   // Remaining time (in milliseconds)
   const [remaining, setRemaining] = useState(endTime - Date.now());
 
-  // This flag ensures toast fires only once
-  const hasNotified = useRef(false);
-
   /*
   Countdown timer:
   Runs every second and updates remaining time.

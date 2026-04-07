@@ -36,11 +36,13 @@ const isLoggedIn = !!localStorage.getItem("currentUserEmail");
 
   // ✅ Enforce logout by routing
   useEffect(() => {
-    if (!isLoggedIn && location.pathname !== "/") {
-      navigate("/", { replace: true });
-    }
-  }, [isLoggedIn, location.pathname, navigate]);
-
+  if (
+    !isLoggedIn &&
+    location.pathname !== "/" // login route
+  ) {
+    navigate("/", { replace: true });
+  }
+}, [isLoggedIn, location.pathname, navigate]);
 
   return (
     <>

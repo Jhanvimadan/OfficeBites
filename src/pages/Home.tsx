@@ -59,12 +59,12 @@ export default function Home({ office, setOffice }: HomeProps) {
         onChangeLocation={() => setShowModal(true)}
       />
 
-      {/* ---------- SEARCH BAR ---------- */}
+      {/* ---------- SEARCH BAR ---------- 
       <SearchBar
         value={searchText}
         onChange={setSearchText}
         placeholder="Search restaurants"
-      />
+      />*/}
 
       {/* ---------- CAFETERIA LIST ---------- */}
       <div ref={cafeteriaRef}>

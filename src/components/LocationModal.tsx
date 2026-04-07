@@ -14,11 +14,13 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 
+
 type LocationModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (location: string) => void;
 };
+
 
 const officeData: Record<string, string[]> = {
   Bangalore: [

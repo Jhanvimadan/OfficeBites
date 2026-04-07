@@ -68,7 +68,8 @@ src/
 │   ├── MenuShimmer.tsx
 │   ├── Navbar.tsx
 │   ├── PastOrders.tsx
-│   └── RestaurantFooter.tsx
+│   ├── RestaurantFooter.tsx
+│   └── SearchBar.tsx
 ├── context/                # Application state providers
 │   ├── CartContext.tsx
 │   └── SearchContext.tsx
