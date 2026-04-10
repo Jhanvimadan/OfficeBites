@@ -29,9 +29,17 @@ export default function Navbar() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  // TEMP (until real auth exists)
-  const userName = "Office User";
+// SESSION IDENTITY
+  const userEmail = localStorage
+    .getItem("currentUserEmail")
+    ?.toLowerCase();
+
   const userLocation = "Bangalore";
+  // Temporary demo data
+  const userName = userEmail
+    ? userEmail.split("@")[0]
+    : "User";
+  const officeLocation = "Bangalore";
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

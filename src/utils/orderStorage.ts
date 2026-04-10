@@ -1,3 +1,5 @@
+//a utility that abstracts localStorage access for order history
+//ensures order data is always stored and retrieved per user consistently
 const getUserKey = (email: string) =>
   `orderHistory_${email}`;
 

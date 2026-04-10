@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Box, Typography, Card } from "@mui/material";
-import toast from "react-hot-toast";
-
+import { saveOrderToHistory } from "../utils/orderStorage";
 /*
 CurrentOrder shows the live order that is currently being prepared.
 It:
@@ -31,39 +30,54 @@ export default function CurrentOrder({ order }: any) {
     // Cleanup interval when component unmounts
     return () => clearInterval(timer);
   }, [endTime]);
-
+   const hasNotified = useRef(false);
   /*
   Order completion effect:
   - Fires once when remaining time reaches 0
   - Shows toast
   - Moves order from "lastOrder" to "orderHistory"
   */
-  useEffect(() => {
-    if (remaining <= 0 && !hasNotified.current) {
-      hasNotified.current = true;
+useEffect(() => {
+  if (remaining <= 0 && !hasNotified.current) {
+    hasNotified.current = true;
 
-      // Notify user
-      //toast.success("🎉 Your order is ready! Please collect it.");
+    // Get session identity
+    const email = localStorage
+      .getItem("currentUserEmail")
+      ?.toLowerCase();
 
-      // Read existing order history (or empty array)
-      const history = JSON.parse(
-        localStorage.getItem("orderHistory") || "[]"
-      );
+    if (!email) return;
 
-      // Add completed order to history
-      history.unshift({
-        ...order,
-        status: "COMPLETED",
-        completedAt: Date.now(),
-      });
+   // const historyKey = `orderHistory_${email}`;
 
-      // Save updated history
-      localStorage.setItem("orderHistory", JSON.stringify(history));
 
-      // Remove current active order
-      localStorage.removeItem("lastOrder");
-    }
-  }, [remaining, order]);
+
+ //  // Read user-specific order history
+ //  const history = JSON.parse(
+ //    localStorage.getItem(historyKey) || "[]"
+ //  );
+
+   // Add completed order
+ //  history.unshift({
+ //    ...order,
+ //    status: "COMPLETED",
+ //    completedAt: Date.now(),
+ //  });
+
+ //  // Save back to user-specific history
+ //  localStorage.setItem(
+ //    historyKey,
+ //    JSON.stringify(history)
+ //  );
+
+ //  // Remove active order
+ //  localStorage.removeItem("lastOrder");
+
+ //  // Optional toast
+ //  // toast.success("🎉 Your order is ready! Please collect it.");
+  }
+}, [remaining, order]);
+
 
   // Convert remaining milliseconds to minutes and seconds
   const minutes = Math.max(0, Math.floor(remaining / 60000));

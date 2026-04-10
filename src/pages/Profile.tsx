@@ -19,11 +19,19 @@ export default function Profile() {
   const { restaurantName, restaurantImageId, clearCart } = useCart();
   const navigate = useNavigate();
 
-  // TEMP (until real auth exists)
-  const userName = "Office User";
+
+// SESSION IDENTITY
+  const userEmail = localStorage
+    .getItem("currentUserEmail")
+    ?.toLowerCase();
+
+  // Temporary demo data
+  const userName = userEmail
+    ? userEmail.split("@")[0]
+    : "User";
   const officeLocation = "Bangalore";
-  const userEmail = "office.user@hpe.com";
-  const ordersCount = 12; // dummy data
+  const ordersCount = 12;
+
 
   const handleLogout = () => {
     clearCart();

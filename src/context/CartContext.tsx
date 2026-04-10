@@ -1,8 +1,7 @@
-// to keep cart, quantities, totals, restaurant name in sync across many pages
-// cart belongs to user session not page
 import { createContext, useContext, useState } from "react";
 
-// describes what a cart item is
+/* ---------------- TYPES ---------------- */
+
 type CartItem = {
   id: string;
   name: string;
@@ -10,13 +9,17 @@ type CartItem = {
   quantity: number;
 };
 
-// describes offer coming from API
 type Offer = {
-  header?: string;     // e.g. "20% OFF"
-  subHeader?: string;  // e.g. "UPTO ₹100"
+  header?: string;
+  subHeader?: string;
 };
 
-// describes everything the rest of the app is allowed to do with the cart
+type RepeatableOrder = {
+  restaurantName: string;
+  restaurantImageId?: string;
+  items: CartItem[];
+};
+
 type CartContextType = {
   cartItems: CartItem[];
   restaurantName: string | null;
@@ -31,69 +34,64 @@ type CartContextType = {
   removeItem: (id: string) => void;
   clearCart: () => void;
   completeOrder: (paymentMode: "UPI" | "COUNTER") => void;
+  repeatOrder: (order: RepeatableOrder) => void;
   totalAmount: number;
   discountAmount: number;
   finalAmount: number;
 };
 
-// creates a container for cart data
 const CartContext = createContext<CartContextType | null>(null);
 
-// CartProvider owns cart state and provides functions to manipulate it
+/* ---------------- PROVIDER ---------------- */
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [appliedOffer, setAppliedOffer] = useState<Offer | null>(null);
   const [restaurantImageId, setRestaurantImageId] = useState<string | null>(null);
 
-  // cart belongs to one restaurant
+  /* ---------- CART ACTIONS ---------- */
+
   const addItem = (
-  item: Omit<CartItem, "quantity">,
-  restName: string,
-  offer?: Offer,
-  restaurantImageId?: string
-) => {
-  // CART RESTAURANT MISMATCH CHECK
-  if (restaurantName && restaurantName !== restName) {
-    throw new Error("DIFFERENT_RESTAURANT");
-  }
+    item: Omit<CartItem, "quantity">,
+    restName: string,
+    offer?: Offer,
+    restaurantImageId?: string
+  ) => {
+    if (restaurantName && restaurantName !== restName) {
+      throw new Error("DIFFERENT_RESTAURANT");
+    }
 
-  setRestaurantName((prev) => prev ?? restName);
+    setRestaurantName(prev => prev ?? restName);
+    setRestaurantImageId(prev => prev ?? restaurantImageId ?? null);
 
-  setRestaurantImageId((prev) => prev ?? restaurantImageId ?? null);
-
-    // capture offer only once (first item)
     if (offer && !appliedOffer) {
       setAppliedOffer(offer);
     }
 
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-
+    setCartItems(prev => {
+      const existing = prev.find(i => i.id === item.id);
       if (existing) {
-        return prev.map((i) =>
+        return prev.map(i =>
           i.id === item.id
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
       }
-
       return [...prev, { ...item, quantity: 1 }];
     });
   };
 
-  // removes one quantity of item
   const removeItem = (id: string) => {
-    setCartItems((prev) =>
+    setCartItems(prev =>
       prev
-        .map((i) =>
+        .map(i =>
           i.id === id ? { ...i, quantity: i.quantity - 1 } : i
         )
-        .filter((i) => i.quantity > 0)
+        .filter(i => i.quantity > 0)
     );
   };
 
-  // clears cart completely
   const clearCart = () => {
     setCartItems([]);
     setRestaurantName(null);
@@ -101,88 +99,66 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setRestaurantImageId(null);
   };
 
-  // subtotal                    
+  /* ---------- DERIVED VALUES ---------- */
+
   const totalAmount = cartItems.reduce(
     (sum, i) => sum + i.price * i.quantity,
     0
   );
 
-  // discount calculation
   let discountAmount = 0;
 
   if (appliedOffer?.header?.includes("%")) {
-    const percent = parseInt(appliedOffer.header); // "20% OFF" → 20
+    const percent = parseInt(appliedOffer.header);
     const percentDiscount = (totalAmount * percent) / 100;
 
     let maxCap = Infinity;
     if (appliedOffer.subHeader) {
       const match = appliedOffer.subHeader.match(/₹(\d+)/);
-      if (match) {
-        maxCap = parseInt(match[1]);
-      }
+      if (match) maxCap = parseInt(match[1]);
     }
-
     discountAmount = Math.min(percentDiscount, maxCap);
   }
 
-  // final payable amount
-  const finalAmount = Math.max(
-    totalAmount - discountAmount,
-    0
-  );
+  const finalAmount = Math.max(totalAmount - discountAmount, 0);
 
-// completes the order after payment
-const completeOrder = (paymentMode: "UPI" | "COUNTER") => {
-  if (cartItems.length === 0 || !restaurantName) {
-    throw new Error("Cannot place order: cart or restaurant missing");
-  }
+  /* ---------- ORDER FLOW ---------- */
 
-  const email = localStorage.getItem("currentUserEmail");
-  if (!email) {
-    throw new Error("User not logged in");
-  }
+  const completeOrder = (paymentMode: "UPI" | "COUNTER") => {
+    if (cartItems.length === 0 || !restaurantName) {
+      throw new Error("Cannot place order");
+    }
 
-  const token = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-  const prepTime = 10 + cartItems.length * 2;
-  const now = Date.now();
+    const now = Date.now();
+    const prepTime = 10 + cartItems.length * 2;
+    const endTime = now + prepTime * 60 * 1000;
 
-  // Current order (for live tracking)
-  const order = {
-    token,
-    restaurantName,
-    restaurantImageId,
-    items: cartItems,
-    totalAmount: finalAmount,
-    paymentMode,
-    prepTime,
-    status: "IN_PROGRESS",
-    createdAt: now,
+    const order = {
+      token: "ORD-" + Math.floor(1000 + Math.random() * 9000),
+      restaurantName,
+      restaurantImageId,
+      items: cartItems,
+      totalAmount: finalAmount,
+      paymentMode,
+      prepTime,
+      createdAt: now,
+      endTime,
+      status: "IN_PROGRESS",
+    };
+
+    localStorage.setItem("lastOrder", JSON.stringify(order));
+    clearCart();
   };
 
-  // 1. Store current order (used by CurrentOrder page)
-  localStorage.setItem("lastOrder", JSON.stringify(order));
+  /* ---------- REPEAT ORDER ---------- */
 
-  // 2. Store into per‑email order history
-  const historyKey = `orderHistory_${email}`;
-  const existingHistory = JSON.parse(
-    localStorage.getItem(historyKey) || "[]"
-  );
-
-  const historyOrder = {
-    ...order,
-    status: "COMPLETED",
-    completedAt: now,
+  const repeatOrder = (order: RepeatableOrder) => {
+    clearCart();
+    setRestaurantName(order.restaurantName);
+    setRestaurantImageId(order.restaurantImageId || null);
+    setCartItems(order.items.map(item => ({ ...item })));
   };
 
-  existingHistory.unshift(historyOrder);
-  localStorage.setItem(
-    historyKey,
-    JSON.stringify(existingHistory)
-  );
-
-  // ✅ 3. Clear cart session
-  clearCart();
-};
   return (
     <CartContext.Provider
       value={{
@@ -194,6 +170,7 @@ const completeOrder = (paymentMode: "UPI" | "COUNTER") => {
         removeItem,
         clearCart,
         completeOrder,
+        repeatOrder,
         totalAmount,
         discountAmount,
         finalAmount,
@@ -204,7 +181,8 @@ const completeOrder = (paymentMode: "UPI" | "COUNTER") => {
   );
 }
 
-// custom hook to access cart safely
+/* ---------------- HOOK ---------------- */
+
 export const useCart = () => {
   const ctx = useContext(CartContext);
   if (!ctx) {
