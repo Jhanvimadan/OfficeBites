@@ -26,15 +26,15 @@ function Layout() {
 
 const isLoggedIn = !!localStorage.getItem("currentUserEmail");
 
-  // ✅ Navbar: hide when logged out OR on login page
+  // Navbar: hide when logged out OR on login page
   const hideNavbar = !isLoggedIn || location.pathname === "/";
 
-  // ✅ Footer: hide on login + menu pages
+  // Footer: hide on login + menu pages
   const hideFooter =
     location.pathname === "/" ||
     location.pathname.startsWith("/menu");
 
-  // ✅ Enforce logout by routing
+  // Enforce logout by routing
   useEffect(() => {
   if (
     !isLoggedIn &&

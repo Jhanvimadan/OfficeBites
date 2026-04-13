@@ -25,7 +25,7 @@ export default function DealCard({ restaurant, onClick }: DealCardProps) {
     transition: "all 0.25s ease",
 
     "&:hover": {
-  transform: "translateY(-6px) scale(1.04)",
+  transform: "translateY(-6px) scale(0.84)",
   boxShadow: "0 14px 28px rgba(0,0,0,0.22)",
   outline: "2px solid #2e7d32",
   outlineOffset: "-2px",
