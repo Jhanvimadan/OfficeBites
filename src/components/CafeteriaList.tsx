@@ -35,7 +35,7 @@ export default function CafeteriaList() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const ITEMS_PER_BATCH = 6;
+  const ITEMS_PER_BATCH = 8;
   const [page, setPage] = useState(1);
 
   const navigate = useNavigate();
